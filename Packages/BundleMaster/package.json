@@ -1,0 +1,15 @@
+{
+  "name": "com.hlwd.bundlemaster",
+  "version": "1.0.0",
+  "displayName": "BundleMaster",
+  "description": "hlwd's bundlemaster,forked from https://www.unitybundlemaster.com/.",
+  "category": "Runtime",
+  "keywords": [
+    "asset bundle"
+  ],
+  "author": {
+    "name": "hlwd",
+    "email": "hlwd@hellowd.net",
+    "url": "https://www.hlwd.com/"
+  }
+}

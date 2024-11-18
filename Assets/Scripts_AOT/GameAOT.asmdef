@@ -1,0 +1,18 @@
+{
+    "name": "GameAOT",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b98a4eaf01896f5418b13b9950aabd98",
+        "GUID:60c610802623bf040936151367121431",
+        "GUID:13ba8ce62aa80c74598530029cb2d649"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
