@@ -5,6 +5,7 @@ using UnityEditor.iOS.Xcode;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor.iOS.Xcode.Extensions;
+using System;
 
 /*
  * 打包后将打包出来的资源拷贝到目标ios项目中
@@ -49,7 +50,7 @@ public class OnPostprocessBuild_IOS : MonoBehaviour
             EditorUtility.DisplayProgressBar("拷贝文件", pathSetting, i * 1.0f / _copyPathFolders.Length * 1.0f);
             Debug.Log(pathExport + " Complete!");
         }
-
+        SetXcodeSetting(BuildProjectWindows.GetIosOutPath());
         EditorUtility.ClearProgressBar();
         Debug.LogWarning("拷贝打包的资源到ios项目完成！" + System.DateTime.Now);
     }
@@ -99,10 +100,11 @@ public class OnPostprocessBuild_IOS : MonoBehaviour
     }
 
 
-    private static void SetXcodeSetting(string targetPath)
+    private static void SetXcodeSetting(string path)
     {
-        
-        
+        //string projPath = PBXProject.GetPBXProjectPath(path);
+        //PBXProject proj = new PBXProject();
+        //proj.ReadFromString(File.ReadAllText(projPath));
     }
 }
 

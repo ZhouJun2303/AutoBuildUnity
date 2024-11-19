@@ -1,12 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <linker>
-  <assembly fullname="System">
-    <type fullname="System.Collections.Generic.Queue`1" preserve="all" />
-    <type fullname="System.Text.RegularExpressions.Regex" preserve="all" />
-    <type fullname="System.Text.RegularExpressions.RegexOptions" preserve="all" />
-  </assembly>
   <assembly fullname="UnityEngine.AndroidJNIModule">
-    <type fullname="UnityEngine.AndroidJavaClass" preserve="all" />
     <type fullname="UnityEngine.AndroidJavaObject" preserve="all" />
   </assembly>
   <assembly fullname="UnityEngine.CoreModule">
@@ -33,10 +27,9 @@
     <type fullname="UnityEngine.UI.Button/ButtonClickedEvent" preserve="all" />
     <type fullname="UnityEngine.UI.Text" preserve="all" />
   </assembly>
-  <assembly fullname="mscorlib">
+  <assembly fullname="netstandard">
     <type fullname="System.Action`4" preserve="all" />
     <type fullname="System.Array" preserve="all" />
-    <type fullname="System.AsyncCallback" preserve="all" />
     <type fullname="System.BitConverter" preserve="all" />
     <type fullname="System.Byte" preserve="all" />
     <type fullname="System.Char" preserve="all" />
@@ -44,6 +37,7 @@
     <type fullname="System.Collections.Generic.Dictionary`2/Enumerator" preserve="all" />
     <type fullname="System.Collections.Generic.KeyValuePair`2" preserve="all" />
     <type fullname="System.Collections.Generic.List`1" preserve="all" />
+    <type fullname="System.Collections.Generic.Queue`1" preserve="all" />
     <type fullname="System.DBNull" preserve="all" />
     <type fullname="System.DateTime" preserve="all" />
     <type fullname="System.Diagnostics.DebuggableAttribute" preserve="all" />
@@ -55,7 +49,6 @@
     <type fullname="System.Exception" preserve="all" />
     <type fullname="System.Func`1" preserve="all" />
     <type fullname="System.Globalization.NumberStyles" preserve="all" />
-    <type fullname="System.IAsyncResult" preserve="all" />
     <type fullname="System.IDisposable" preserve="all" />
     <type fullname="System.IEquatable`1" preserve="all" />
     <type fullname="System.IO.Directory" preserve="all" />
@@ -91,6 +84,8 @@
     <type fullname="System.StringSplitOptions" preserve="all" />
     <type fullname="System.Text.ASCIIEncoding" preserve="all" />
     <type fullname="System.Text.Encoding" preserve="all" />
+    <type fullname="System.Text.RegularExpressions.Regex" preserve="all" />
+    <type fullname="System.Text.RegularExpressions.RegexOptions" preserve="all" />
     <type fullname="System.Text.StringBuilder" preserve="all" />
     <type fullname="System.Text.UTF8Encoding" preserve="all" />
     <type fullname="System.Threading.Monitor" preserve="all" />

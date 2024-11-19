@@ -41,6 +41,11 @@ public class LaunchAOT : MonoBehaviour
         return;
 #endif
         Init().Coroutine();
+
+        //test
+        Test11 t1 = new Test11();
+        Test22 t12 = new Test22();
+        Test33 t13= new Test33();
     }
 
     private async ETTask Init()

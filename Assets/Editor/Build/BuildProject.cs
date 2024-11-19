@@ -1,16 +1,13 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using BM;
+using dnlib.DotNet;
+using Scripts_AOT.Utility;
 using UnityEditor;
 using UnityEngine;
-using System.IO;
-using System;
-using BM;
-using Scripts_AOT.Utility;
-/*
- * 导出工程
- * 
- * 安卓包上传到后台后，记得把build.gradle里的版本号+1提交,备份好Buyly mapping文件
- */
+using UnityEditor.iOS.Xcode;
+using UnityEditor.iOS.Xcode.PBX;
 
 public class BuildProject
 {
@@ -300,6 +297,166 @@ public class BuildProject
         AssetDatabase.Refresh();
         Debug.Log("热更dll 版本信息处理完毕");
     }
+
+    [MenuItem("打包/Test/iOS 全拷贝测试")]
+    public static void IOSFullCopyTest()
+    {
+        string originPath = Path.GetFullPath(Path.Combine(GetProjectPath(), "TempBuild"));
+        //string targetPath = Path.GetFullPath(Path.Combine(GetProjectPath(), "../TempBuild"));
+        string targetPath = BuildProjectWindows.GetIosOutPath();
+        Debug.Log(originPath);
+        Debug.Log(targetPath);
+
+        static void CopyDirectory(string from, string to)
+        {
+            if (!Directory.Exists(from)) return;
+
+            if (!Directory.Exists(to))
+                Directory.CreateDirectory(to);
+
+            List<string> files = new List<string>(Directory.GetFiles(from));
+            files.ForEach(c =>
+            {
+                string destFile = Path.Combine(new string[] { to, Path.GetFileName(c) });
+                File.Copy(c, destFile, true);
+            });
+            List<string> folders = new List<string>(Directory.GetDirectories(from));
+            folders.ForEach(c =>
+            {
+                string destDir = Path.Combine(new string[] { to, Path.GetFileName(c) });
+                CopyDirectory(c, destDir);
+            });
+        }
+
+        CopyDirectory(originPath, targetPath);
+    }
+
+    [MenuItem("打包/Test/引用文件更新")]
+    public static void UpdateFefFile()
+    {
+        string buildPath = BuildProjectWindows.GetIosOutPath();
+        // 获取 Xcode 项目的路径
+        string projectPath = PBXProject.GetPBXProjectPath(buildPath);
+
+        // 加载 Xcode 项目
+        PBXProject project = new PBXProject();
+        project.ReadFromFile(projectPath);
+
+        // 获取 target
+        string target = project.GetUnityFrameworkTargetGuid();
+
+        // 移除已经存在的 Classes/Native 文件引用
+        RemoveExistingFilesFromProject(project, buildPath, target);
+
+        // 添加新的文件到项目中
+        AddFilesToProject(project, buildPath, target);
+
+        // 保存修改
+        project.WriteToFile(projectPath);
+    }
+
+
+    // 移除项目中已经存在的 Classes/Native 文件引用
+    private static void RemoveExistingFilesFromProject(PBXProject project, string buildPath, string target)
+    {
+        // `Classes/Native` 文件夹路径
+        string classesNativePath = Path.Combine(buildPath, "Classes/Native");
+
+        // 获取所有文件
+        string[] files = Directory.GetFiles(classesNativePath, "*.*", SearchOption.AllDirectories);
+
+        foreach (string file in files)
+        {
+            // 获取相对路径
+            string relativePath = "Classes/Native/" + Path.GetFileName(file);
+
+            // 查找项目中是否已经包含此文件
+            string fileGuid = project.FindFileGuidByProjectPath(relativePath);
+
+            if (!string.IsNullOrEmpty(fileGuid))
+            {
+                // 如果文件已经存在于项目中，删除它
+                project.RemoveFile(fileGuid);
+                project.RemoveFileFromBuild(target, fileGuid);
+            }
+        }
+    }
+
+    // 添加文件到 Xcode 项目
+    private static void AddFilesToProject(PBXProject project, string buildPath, string target)
+    {
+        // `Classes/Native` 文件夹路径
+        string classesNativePath = Path.Combine(buildPath, "Classes/Native");
+
+        // 获取所有文件
+        string[] files = Directory.GetFiles(classesNativePath, "*.*", SearchOption.AllDirectories);
+
+        // 遍历文件并添加到 Xcode 项目
+        foreach (string file in files)
+        {
+            // 添加文件到 Xcode 项目
+            string relativePath = "Classes/Native/" + Path.GetFileName(file);
+            string fileGuid = project.AddFile(file, relativePath);
+            project.AddFileToBuild(target, fileGuid);
+        }
+
+        // 示例：添加必要的 Frameworks（根据项目需求）
+        //project.AddFrameworkToProject(target, "AudioToolbox.framework", false);
+        //project.AddFrameworkToProject(target, "CoreGraphics.framework", false);
+    }
+    
+    //todo 查找某个文件的引用关系
+    public static string CheckFileTarget(string buildPath, string filePath)
+    {
+        //// 获取 Xcode 项目的路径
+        //string projectPath = PBXProject.GetPBXProjectPath(buildPath);
+
+        //// 加载 Xcode 项目
+        //PBXProject project = new PBXProject();
+        //project.ReadFromFile(projectPath);
+
+        //// 获取 targets 的 GUID
+        //string unityIphoneTarget = project.GetUnityMainTargetGuid();
+        //string unityFrameworkTarget = project.GetUnityFrameworkTargetGuid();
+
+        //// 获取文件的相对路径
+        //string relativePath = "Classes/Native/" + Path.GetFileName(filePath);
+
+        //// 查找该文件在项目中的 GUID
+        //string fileGuid = project.FindFileGuidByProjectPath(relativePath);
+
+        //if (!string.IsNullOrEmpty(fileGuid))
+        //{
+        //    // 获取该文件的引用对象
+        //    PBXFileReferenceData fileRef = project.FileRefsGet(fileGuid);
+
+        //    // 遍历所有 targets，检查该文件是否属于其中之一
+        //    foreach (string targetGuid in project.TargetGuidArray)
+        //    {
+        //        // 获取该 target 下的所有 build files
+        //        var buildFiles = project.BuildFilesForTarget(targetGuid);
+        //        foreach (var buildFile in buildFiles)
+        //        {
+        //            if (buildFile.fileRef == fileRef)
+        //            {
+        //                // 如果找到了对应的 build file，表示该文件属于当前 target
+        //                if (targetGuid == unityIphoneTarget)
+        //                {
+        //                    return "Unity-iPhone";
+        //                }
+        //                else if (targetGuid == unityFrameworkTarget)
+        //                {
+        //                    return "UnityFramework";
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+
+        //// 如果没有找到文件或文件不在任何 target 下
+        return "Unknown Target";
+    }
+
 
     public static string ConvertPath(string path)
     {

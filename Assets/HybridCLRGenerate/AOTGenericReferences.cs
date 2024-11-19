@@ -6,7 +6,6 @@ public class AOTGenericReferences : UnityEngine.MonoBehaviour
 	public static readonly IReadOnlyList<string> PatchedAOTAssemblyList = new List<string>
 	{
 		"System.dll",
-		"UnityEngine.AndroidJNIModule.dll",
 		"UnityEngine.CoreModule.dll",
 		"mscorlib.dll",
 	};
@@ -80,13 +79,6 @@ public class AOTGenericReferences : UnityEngine.MonoBehaviour
 	public void RefMethods()
 	{
 		// object[] System.Array.Empty<object>()
-		// object UnityEngine.AndroidJNIHelper.ConvertFromJNIArray<object>(System.IntPtr)
-		// System.IntPtr UnityEngine.AndroidJNIHelper.GetFieldID<object>(System.IntPtr,string,bool)
-		// object UnityEngine.AndroidJavaObject.FromJavaArrayDeleteLocalRef<object>(System.IntPtr)
-		// object UnityEngine.AndroidJavaObject.GetStatic<object>(string)
-		// object UnityEngine.AndroidJavaObject._GetStatic<object>(string)
 		// object UnityEngine.Component.GetComponent<object>()
-		// object UnityEngine._AndroidJNIHelper.ConvertFromJNIArray<object>(System.IntPtr)
-		// System.IntPtr UnityEngine._AndroidJNIHelper.GetFieldID<object>(System.IntPtr,string,bool)
 	}
 }
