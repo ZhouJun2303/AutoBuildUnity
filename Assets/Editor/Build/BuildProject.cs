@@ -225,9 +225,15 @@ public class BuildProject
         AssetDatabase.Refresh();
         //编译dll源文件夹
         string hybridCLRDataPath = Application.dataPath + @"\..\HybridCLRData";
+#if UNITY_ANDROID
         //源路径
-        string aotMetadataDllsPath = Path.Combine(hybridCLRDataPath, @"AssembliesPostIl2CppStrip\Android");  //AOT补充元数据
-        string hotUpdateDllsPath = Path.Combine(hybridCLRDataPath, @"HotUpdateDlls\Android");   //热更新DLL路径
+        string aotMetadataDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"AssembliesPostIl2CppStrip\Android"));  //AOT补充元数据
+        string hotUpdateDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"HotUpdateDlls\Android"));   //热更新DLL路径
+#elif UNITY_IOS
+        //源路径
+        string aotMetadataDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"AssembliesPostIl2CppStrip\iOS"));  //AOT补充元数据
+        string hotUpdateDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"HotUpdateDlls\iOS"));   //热更新DLL路径
+#endif
         //版本控制文件名
         string AOTAssemblyMetadataVersion = "AOTAssemblyMetadataVersion.txt";
         string hotUpdateDllsVersion = "DllHotUpdateVersion.txt";
@@ -258,7 +264,8 @@ public class BuildProject
 
         foreach (string name in MetadataConfig.AotAssemblyMetadatas)
         {
-            string fullName = Path.Combine(aotMetadataDllsPath, name);
+            string fullName = ConvertPath(Path.Combine(aotMetadataDllsPath, name));
+            Debug.Log($"fullpath {fullName}");
             if (!File.Exists(fullName))
             {
                 Debug.LogError("【警告】缺少补充元数据文件：" + name);
@@ -271,7 +278,7 @@ public class BuildProject
             hotUpdateFileInfo.Size = data.Length;
             hotUpdateFileInfo.Version = HashHelper.GetHashString(data, HashAlgorithmType.MD5);
             aotLocalVersionDic.Add(name, hotUpdateFileInfo);
-            File.Copy(fullName, Path.Combine(targetAOTAssemblyMetadataDlls, name), true);
+            File.Copy(fullName, ConvertPath(Path.Combine(targetAOTAssemblyMetadataDlls, name)), true);
         }
         Debug.Log("AOT 补充元数据 版本信息处理完毕");
 
@@ -279,7 +286,7 @@ public class BuildProject
         Dictionary<string, HotUpdateFileInfo> hotUpdateLocalVersionDic = new Dictionary<string, HotUpdateFileInfo>();
         foreach (string dllName in hotUpdateDllFiles)
         {
-            string fullName = Path.Combine(hotUpdateDllsPath, dllName);
+            string fullName = ConvertPath(Path.Combine(hotUpdateDllsPath, dllName));
             string targetName = dllName + ".bytes";
             byte[] data = File.ReadAllBytes(fullName);
 
@@ -288,10 +295,21 @@ public class BuildProject
             hotUpdateFileInfo.Size = data.Length;
             hotUpdateFileInfo.Version = HashHelper.GetHashString(data, HashAlgorithmType.MD5);
             hotUpdateLocalVersionDic.Add(targetName, hotUpdateFileInfo);
-            File.WriteAllBytes(Path.Combine(targetHotUpdateDllsPath, targetName), data);
+            File.WriteAllBytes(ConvertPath(Path.Combine(targetHotUpdateDllsPath, targetName)), data);
         }
         AssetDatabase.Refresh();
         Debug.Log("热更dll 版本信息处理完毕");
+    }
+
+    public static string ConvertPath(string path)
+    {
+        // 将反斜杠 \ 替换为正斜杠 /
+        path = path.Replace('\\', '/');
+
+        // 处理相对路径 ..，在 macOS 中这会按照文件系统规则自动解析
+        path = Path.GetFullPath(path); // 将路径转化为绝对路径
+
+        return path;
     }
 }
 
