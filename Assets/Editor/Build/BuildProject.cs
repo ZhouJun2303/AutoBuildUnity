@@ -426,15 +426,19 @@ public class BuildProject
         // 查找该文件在项目中的 GUID
         string fileGuid = project.FindFileGuidByProjectPath(relativePath);
 
+        Debug.Log(fileGuid);
         if (!string.IsNullOrEmpty(fileGuid))
         {
-            var GetTargetProductFileRef = project.GetTargetProductFileRef(fileGuid);
+            var GetTargetProductFileRef = project.GetTargetProductFileRef(unityIphoneTarget);
             Debug.Log($"GetTargetProductFileRef {GetTargetProductFileRef}");
         }
+
 
         //// 如果没有找到文件或文件不在任何 target 下
         return "Unknown Target";
     }
+
+
 
 
     public static string ConvertPath(string path)
