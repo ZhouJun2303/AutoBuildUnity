@@ -404,54 +404,33 @@ public class BuildProject
         //project.AddFrameworkToProject(target, "AudioToolbox.framework", false);
         //project.AddFrameworkToProject(target, "CoreGraphics.framework", false);
     }
-    
-    //todo 查找某个文件的引用关系
-    public static string CheckFileTarget(string buildPath, string filePath)
+
+    [MenuItem("打包/Test/查找文件引用关系")]
+    public static string CheckFileTarget()
     {
-        //// 获取 Xcode 项目的路径
-        //string projectPath = PBXProject.GetPBXProjectPath(buildPath);
+        string buildPath = BuildProjectWindows.GetIosOutPath();
+        // 获取 Xcode 项目的路径
+        string projectPath = PBXProject.GetPBXProjectPath(buildPath);
+        // 加载 Xcode 项目
+        PBXProject project = new PBXProject();
+        project.ReadFromFile(projectPath);
 
-        //// 加载 Xcode 项目
-        //PBXProject project = new PBXProject();
-        //project.ReadFromFile(projectPath);
+        // 获取 targets 的 GUID
+        string unityIphoneTarget = project.GetUnityMainTargetGuid();
+        string unityFrameworkTarget = project.GetUnityFrameworkTargetGuid();
+        Debug.Log("Iphone TargetId " + unityIphoneTarget);
+        Debug.Log("Framwork TargetId " + unityFrameworkTarget);
+        // 获取文件的相对路径
+        string relativePath = "Libraries/GameAnalytics/Plugins/iOS/GameAnalytics.h";
 
-        //// 获取 targets 的 GUID
-        //string unityIphoneTarget = project.GetUnityMainTargetGuid();
-        //string unityFrameworkTarget = project.GetUnityFrameworkTargetGuid();
+        // 查找该文件在项目中的 GUID
+        string fileGuid = project.FindFileGuidByProjectPath(relativePath);
 
-        //// 获取文件的相对路径
-        //string relativePath = "Classes/Native/" + Path.GetFileName(filePath);
-
-        //// 查找该文件在项目中的 GUID
-        //string fileGuid = project.FindFileGuidByProjectPath(relativePath);
-
-        //if (!string.IsNullOrEmpty(fileGuid))
-        //{
-        //    // 获取该文件的引用对象
-        //    PBXFileReferenceData fileRef = project.FileRefsGet(fileGuid);
-
-        //    // 遍历所有 targets，检查该文件是否属于其中之一
-        //    foreach (string targetGuid in project.TargetGuidArray)
-        //    {
-        //        // 获取该 target 下的所有 build files
-        //        var buildFiles = project.BuildFilesForTarget(targetGuid);
-        //        foreach (var buildFile in buildFiles)
-        //        {
-        //            if (buildFile.fileRef == fileRef)
-        //            {
-        //                // 如果找到了对应的 build file，表示该文件属于当前 target
-        //                if (targetGuid == unityIphoneTarget)
-        //                {
-        //                    return "Unity-iPhone";
-        //                }
-        //                else if (targetGuid == unityFrameworkTarget)
-        //                {
-        //                    return "UnityFramework";
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
+        if (!string.IsNullOrEmpty(fileGuid))
+        {
+            var GetTargetProductFileRef = project.GetTargetProductFileRef(fileGuid);
+            Debug.Log($"GetTargetProductFileRef {GetTargetProductFileRef}");
+        }
 
         //// 如果没有找到文件或文件不在任何 target 下
         return "Unknown Target";
