@@ -1,6 +1,6 @@
 ﻿namespace System.Runtime.CompilerServices
 {
-    public sealed class AsyncMethodBuilderAttribute: Attribute
+    public class AsyncMethodBuilderAttribute : Attribute
     {
         public Type BuilderType
         {

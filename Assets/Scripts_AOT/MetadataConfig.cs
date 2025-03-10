@@ -10,5 +10,6 @@ public class MetadataConfig
             "System.Core.dll",
             "UnityEngine.AndroidJNIModule.dll",
             "System.dll",
+            "MyTaskTest.dll",
         };
 }
