@@ -12,4 +12,9 @@ public class MetadataConfig
             "System.dll",
             "MyTaskTest.dll",
         };
+
+    public static string GetStripMetadataName(string name)
+    {
+        return "Strip_" + name;
+    }
 }

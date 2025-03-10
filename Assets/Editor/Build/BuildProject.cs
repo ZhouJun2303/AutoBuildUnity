@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEditor.iOS.Xcode;
 using UnityEditor.iOS.Xcode.PBX;
+using HybridCLR.Editor.AOT;
 
 public class BuildProject
 {
@@ -259,23 +260,27 @@ public class BuildProject
 
         Debug.Log("导出路径：" + targetPath);
 
+        //裁剪补充元数据
+        MyAOTAssemblyMetadataStripper();
+
         foreach (string name in MetadataConfig.AotAssemblyMetadatas)
         {
-            string fullName = ConvertPath(Path.Combine(aotMetadataDllsPath, name));
+            string finalName = MetadataConfig.GetStripMetadataName(name);
+            string fullName = ConvertPath(Path.Combine(aotMetadataDllsPath, finalName));
             Debug.Log($"fullpath {fullName}");
             if (!File.Exists(fullName))
             {
-                Debug.LogError("【警告】缺少补充元数据文件：" + name);
+                Debug.LogError("【警告】缺少补充元数据文件：" + finalName);
                 continue;
             }
 
             byte[] data = File.ReadAllBytes(fullName);
             HotUpdateFileInfo hotUpdateFileInfo;
-            hotUpdateFileInfo.Name = name;
+            hotUpdateFileInfo.Name = finalName;
             hotUpdateFileInfo.Size = data.Length;
             hotUpdateFileInfo.Version = HashHelper.GetHashString(data, HashAlgorithmType.MD5);
-            aotLocalVersionDic.Add(name, hotUpdateFileInfo);
-            File.Copy(fullName, ConvertPath(Path.Combine(targetAOTAssemblyMetadataDlls, name)), true);
+            aotLocalVersionDic.Add(finalName, hotUpdateFileInfo);
+            File.Copy(fullName, ConvertPath(Path.Combine(targetAOTAssemblyMetadataDlls, finalName)), true);
         }
         Debug.Log("AOT 补充元数据 版本信息处理完毕");
 
@@ -297,6 +302,38 @@ public class BuildProject
         AssetDatabase.Refresh();
         Debug.Log("热更dll 版本信息处理完毕");
     }
+
+    [MenuItem("打包/补充元数据裁剪")]
+    public static void MyAOTAssemblyMetadataStripper()
+    {
+        var targetPath = Application.streamingAssetsPath;
+        HybridCLR.Editor.Commands.CompileDllCommand.CompileDll(EditorUserBuildSettings.activeBuildTarget);
+        AssetDatabase.Refresh();
+        //编译dll源文件夹
+        string hybridCLRDataPath = Application.dataPath + @"\..\HybridCLRData";
+#if UNITY_ANDROID
+        //源路径
+        string aotMetadataDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"AssembliesPostIl2CppStrip\Android"));  //AOT补充元数据
+        string hotUpdateDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"HotUpdateDlls\Android"));   //热更新DLL路径
+#elif UNITY_IOS
+        //源路径
+        string aotMetadataDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"AssembliesPostIl2CppStrip\iOS"));  //AOT补充元数据
+        string hotUpdateDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"HotUpdateDlls\iOS"));   //热更新DLL路径
+#endif
+        foreach (string name in MetadataConfig.AotAssemblyMetadatas)
+        {
+            string originDll = ConvertPath(Path.Combine(aotMetadataDllsPath, name));
+            Debug.Log($"fullpath {originDll}");
+            if (!File.Exists(originDll))
+            {
+                Debug.LogError("【警告】缺少补充元数据文件：" + name);
+                continue;
+            }
+            string targetDll = ConvertPath(Path.Combine(aotMetadataDllsPath, MetadataConfig.GetStripMetadataName(name)));
+            AOTAssemblyMetadataStripper.Strip(originDll, targetDll);
+        }
+    }
+
 
     [MenuItem("打包/Test/iOS 全拷贝测试")]
     public static void IOSFullCopyTest()
@@ -437,9 +474,6 @@ public class BuildProject
         //// 如果没有找到文件或文件不在任何 target 下
         return "Unknown Target";
     }
-
-
-
 
     public static string ConvertPath(string path)
     {

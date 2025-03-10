@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 public class LaunchAOT : MonoBehaviour
 {
     //服务器地址
-    public const string RemotePath = "http://192.168.11.230:9998";
+    public const string RemotePath = "http://192.168.18.62:9998";
     public string PersistentDataPath
     {
         get
@@ -45,7 +45,7 @@ public class LaunchAOT : MonoBehaviour
         //test
         Test11 t1 = new Test11();
         Test22 t12 = new Test22();
-        Test33 t13= new Test33();
+        Test33 t13 = new Test33();
     }
 
     private async ETTask Init()
@@ -96,7 +96,8 @@ public class LaunchAOT : MonoBehaviour
     {
         foreach (var item in MetadataConfig.AotAssemblyMetadatas)
         {
-            string url = Path.Combine(RemotePath, "AOTAssemblyMetadataDlls", item);
+            string finalName = MetadataConfig.GetStripMetadataName(item);
+            string url = Path.Combine(RemotePath, "AOTAssemblyMetadataDlls", finalName);
             using (UnityWebRequest request = UnityWebRequest.Get(url))
             {
                 await request.SendWebRequest();
@@ -108,12 +109,12 @@ public class LaunchAOT : MonoBehaviour
                     }
                     else
                     {
-                        string localFilePath = Path.Combine(AOT_Assembly_Metadata_Dlls_Dir, item);
+                        string localFilePath = Path.Combine(AOT_Assembly_Metadata_Dlls_Dir, finalName);
                         byte[] data = request.downloadHandler.data;
                         LogHelper.Log("update the Metadata ：" + localFilePath);
                         long beginTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                         FileHelper.FileClearWrite(localFilePath, data);
-                        LogHelper.Log($"{item} Write IO消耗：{((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - beginTime)}ms");
+                        LogHelper.Log($"{finalName} Write IO消耗：{((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - beginTime)}ms");
                     }
                 }
             }
@@ -130,7 +131,8 @@ public class LaunchAOT : MonoBehaviour
     {
         foreach (var aotDllName in MetadataConfig.AotAssemblyMetadatas)
         {
-            string path = GetLocalPath(Path.Combine(AOT_Assembly_Metadata_Dlls_Dir, aotDllName), true);
+            string finalName = MetadataConfig.GetStripMetadataName(aotDllName);
+            string path = GetLocalPath(Path.Combine(AOT_Assembly_Metadata_Dlls_Dir, finalName), true);
             UnityWebRequest request = UnityWebRequest.Get(path);
             request.timeout = 5;
             await request.SendWebRequest();
@@ -146,7 +148,7 @@ public class LaunchAOT : MonoBehaviour
                     LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(dllBytes, HomologousImageMode.SuperSet);
                     if (err != LoadImageErrorCode.OK)
                     {
-                        LogHelper.Log($"LoadMetadataForAOTAssembly:{aotDllName}. ret:{err}");
+                        LogHelper.Log($"LoadMetadataForAOTAssembly:{finalName}. ret:{err}");
                     }
                 }
             }
