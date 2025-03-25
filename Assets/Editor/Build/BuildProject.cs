@@ -180,6 +180,18 @@ public class BuildProject
             return;
         }
         BM.BuildAssets.BuildAllBundle();
+
+        BackupBundleAsset();
+    }
+
+    [MenuItem("打包/BackupBundleAsset")]
+    public static void BackupBundleAsset()
+    {
+        int version = ResConfig.Instance.ResVersion;
+        string path = Path.Combine(GetProjectPath(), "ResLocalRecord", version.ToString());
+        //BuildAssets.CopyFileToTargetFolder(path);
+        AssetLoadTable assetLoadTable = AssetDatabase.LoadAssetAtPath<AssetLoadTable>(BundleMasterWindow.AssetLoadTablePath);
+        FileHelper.CopyDir(assetLoadTable.BuildBundlePath, path);
     }
 
     [MenuItem("打包/CopyAssetBundleToStreamingAssets")]
@@ -239,6 +251,9 @@ public class BuildProject
         string targetHotUpdateDllsPath = Path.Combine(targetPath, Hot_Update_Dlls);
         string targetAOTAssemblyMetadataDlls = Path.Combine(targetPath, AOT_Assembly_Metadata_Dlls);
 
+        int version = ResConfig.Instance.ResVersion;
+        string backUpPath = Path.Combine(GetProjectPath(), "ResLocalRecord", version.ToString());
+
         if (!Directory.Exists(targetPath))
         {
             Directory.CreateDirectory(targetPath);
@@ -253,6 +268,23 @@ public class BuildProject
         {
             Directory.CreateDirectory(targetAOTAssemblyMetadataDlls);
         }
+
+        if (!Directory.Exists(backUpPath))
+        {
+            Directory.CreateDirectory(backUpPath);
+        }
+        string backUpHotDll = Path.Combine(backUpPath, Hot_Update_Dlls);
+        if (!Directory.Exists(backUpHotDll))
+        {
+            Directory.CreateDirectory(backUpHotDll);
+        }
+
+        string backUpMetaDll = Path.Combine(backUpPath, AOT_Assembly_Metadata_Dlls);
+        if (!Directory.Exists(backUpMetaDll))
+        {
+            Directory.CreateDirectory(backUpMetaDll);
+        }
+
         DeleteHelper.DeleteDir(targetAOTAssemblyMetadataDlls);
 
         Dictionary<string, HotUpdateFileInfo> aotLocalVersionDic = new Dictionary<string, HotUpdateFileInfo>();
@@ -281,6 +313,7 @@ public class BuildProject
             hotUpdateFileInfo.Version = HashHelper.GetHashString(data, HashAlgorithmType.MD5);
             aotLocalVersionDic.Add(finalName, hotUpdateFileInfo);
             File.Copy(fullName, ConvertPath(Path.Combine(targetAOTAssemblyMetadataDlls, finalName)), true);
+            File.Copy(fullName, ConvertPath(Path.Combine(backUpMetaDll, finalName)), true);
         }
         Debug.Log("AOT 补充元数据 版本信息处理完毕");
 
@@ -297,7 +330,9 @@ public class BuildProject
             hotUpdateFileInfo.Size = data.Length;
             hotUpdateFileInfo.Version = HashHelper.GetHashString(data, HashAlgorithmType.MD5);
             hotUpdateLocalVersionDic.Add(targetName, hotUpdateFileInfo);
-            File.WriteAllBytes(ConvertPath(Path.Combine(targetHotUpdateDllsPath, targetName)), data);
+            string filePath = ConvertPath(Path.Combine(targetHotUpdateDllsPath, targetName));
+            File.WriteAllBytes(filePath, data);
+            File.Copy(filePath, ConvertPath(Path.Combine(backUpHotDll, targetName)), true);
         }
         AssetDatabase.Refresh();
         Debug.Log("热更dll 版本信息处理完毕");
@@ -334,6 +369,22 @@ public class BuildProject
         }
     }
 
+    [MenuItem("打包/生成版本文件")]
+    public static void CreateVersionFile()
+    {
+        //todo 生成版本文件
+    }
+
+    [MenuItem("打包/拷贝当前版本到本地服务器")]
+    public static void CopyHotResToLocalServer()
+    {
+        int version = ResConfig.Instance.ResVersion;
+        string srcPath = Path.Combine(GetProjectPath(), "ResLocalRecord", version.ToString());
+        string destPath = Path.Combine(GetProjectPath(), "ResLocalServer", version.ToString());
+        FileHelper.CopyDir(srcPath, destPath);
+
+        //todo 拷贝最新版本文件
+    }
 
     [MenuItem("打包/Test/iOS 全拷贝测试")]
     public static void IOSFullCopyTest()
