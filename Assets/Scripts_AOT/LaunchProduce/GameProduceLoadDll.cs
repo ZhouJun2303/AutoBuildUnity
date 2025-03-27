@@ -22,7 +22,7 @@ public class GameProduceLoadDll : GameProduceBase<GameProcedureState>
     private async ETTask LoadDll()
     {
         await LoadAotMetadata();
-        await LoadDll();
+        await LoadHotDll();
 
         dependenceFsm.SetState(GameProcedureState.StartGame);
     }
@@ -31,7 +31,7 @@ public class GameProduceLoadDll : GameProduceBase<GameProcedureState>
         foreach (var aotDllName in MetadataConfig.AotAssemblyMetadatas)
         {
             string finalName = MetadataConfig.GetStripMetadataName(aotDllName);
-            string path = GetLocalPath(Path.Combine(LaunchAOT.Config.AOT_Assembly_Metadata_Dlls_Dir, finalName), true);
+            string path = Path.Combine(LaunchAOT.Config.RunTimeAotMetaHotDllPath, finalName);
             LogHelper.Log("LoadAotMetadata：" + path);
             UnityWebRequest request = UnityWebRequest.Get(path);
             request.timeout = 5;
@@ -59,7 +59,7 @@ public class GameProduceLoadDll : GameProduceBase<GameProcedureState>
     private async ETTask LoadHotDll()
     {
         string LaunchDllFileName = "Game.dll.bytes";
-        string launchDllPath = GetLocalPath(Path.Combine(LaunchAOT.Config.Hot_Update_Dlls_Dir, LaunchDllFileName), true);
+        string launchDllPath = Path.Combine(LaunchAOT.Config.RunTimeHotDllPath, LaunchDllFileName);
         LogHelper.Log("launchDllPath：" + launchDllPath);
         UnityWebRequest request = UnityWebRequest.Get(launchDllPath);
         request.timeout = 5;
@@ -82,7 +82,5 @@ public class GameProduceLoadDll : GameProduceBase<GameProcedureState>
                 Assembly.Load(data);
             }
         }
-
-
     }
 }

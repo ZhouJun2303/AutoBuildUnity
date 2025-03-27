@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEditor.iOS.Xcode;
 using UnityEditor.iOS.Xcode.PBX;
 using HybridCLR.Editor.AOT;
+using System.Text;
 
 public class BuildProject
 {
@@ -367,12 +368,25 @@ public class BuildProject
             string targetDll = ConvertPath(Path.Combine(aotMetadataDllsPath, MetadataConfig.GetStripMetadataName(name)));
             AOTAssemblyMetadataStripper.Strip(originDll, targetDll);
         }
+
     }
 
     [MenuItem("打包/生成版本文件")]
     public static void CreateVersionFile()
     {
-        //todo 生成版本文件
+        int version = ResConfig.Instance.ResVersion;
+        string path = Path.Combine(GetProjectPath(), "ResLocalRecord");
+        string versionPath = Path.Combine(path, "version.txt");
+
+        File.WriteAllText(versionPath, $"version={version}", Encoding.UTF8);
+
+        string versionServerPath = Path.Combine(Application.streamingAssetsPath, "version.txt");
+        if (File.Exists(versionServerPath))
+        {
+            File.Delete(versionServerPath);
+        }
+        FileUtil.CopyFileOrDirectory(versionPath, versionServerPath);
+        Debug.Log("生成版本文件 完成！");
     }
 
     [MenuItem("打包/拷贝当前版本到本地服务器")]
@@ -383,7 +397,16 @@ public class BuildProject
         string destPath = Path.Combine(GetProjectPath(), "ResLocalServer", version.ToString());
         FileHelper.CopyDir(srcPath, destPath);
 
-        //todo 拷贝最新版本文件
+        string path = Path.Combine(GetProjectPath(), "ResLocalRecord");
+        string versionPath = Path.Combine(path, "version.txt");
+        string versionServerPath = Path.Combine(GetProjectPath(), "ResLocalServer", "version.txt");
+        if (File.Exists(versionServerPath))
+        {
+            File.Delete(versionServerPath);
+        }
+        File.Copy(versionPath, versionServerPath);
+
+        Debug.Log("CopyHotResToLocalServer 完成！");
     }
 
     [MenuItem("打包/Test/iOS 全拷贝测试")]

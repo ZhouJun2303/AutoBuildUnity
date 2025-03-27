@@ -22,6 +22,7 @@ public class GameProduceUpdateAssetBundle : GameProduceBase<GameProcedureState>
 
     private async ETTask UpdateAssetBundle()
     {
+        LaunchAOT.Config.OverwriteServerVersionToPersisentVersion();
         dependenceFsm.SetState(GameProcedureState.LoadDll);
     }
 }

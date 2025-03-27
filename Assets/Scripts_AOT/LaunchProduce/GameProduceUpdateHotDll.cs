@@ -23,7 +23,8 @@ public class GameProduceUpdateHotDll : GameProduceBase<GameProcedureState>
     private async ETTask UpdateHotDll()
     {
         string fileName = "Game.dll.bytes";
-        string url = Path.Combine(LaunchAOT.Config.RemotePath, "HotUpdateDlls", fileName);
+        string url = Path.Combine(LaunchAOT.Config.RemotePath, LaunchAOT.Config.ServerVersion.ToString(), "HotUpdateDlls", fileName);
+        LogHelper.Log("Server Game.dll.bytes " + url);
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
             await request.SendWebRequest();
@@ -35,7 +36,7 @@ public class GameProduceUpdateHotDll : GameProduceBase<GameProcedureState>
                 }
                 else
                 {
-                    string localFilePath = Path.Combine(LaunchAOT.Config.Hot_Update_Dlls_Dir, fileName);
+                    string localFilePath = Path.Combine(LaunchAOT.Config.HotDllPath, fileName);
                     byte[] data = request.downloadHandler.data;
                     LogHelper.Log("update the dll：" + localFilePath);
                     long beginTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;

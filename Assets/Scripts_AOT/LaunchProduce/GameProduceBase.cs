@@ -33,34 +33,4 @@ public class GameProduceBase<T> : FsmState<T> where T : System.Enum
 
     public virtual void OnProcedureLeave() { }
 
-    public static string GetLocalPath(string path, bool isWebLoad)
-    {
-        string localPath = Path.Combine(Application.persistentDataPath, path);
-        LogHelper.Log(localPath + " " + File.Exists(localPath));
-        //热更目录存在，返回热更目录
-        if (!File.Exists(localPath))
-        {
-            //热更目录不存在，返回streaming目录
-            localPath = Path.Combine(Application.streamingAssetsPath, path);
-        }
-        if (isWebLoad)
-        {
-            //通过webReq加载
-#if UNITY_ANDROID && !UNITY_EDITOR
-                if (!localPath.Contains("file:///"))
-                {
-                    localPath = "file://" + localPath;
-                }
-#elif UNITY_IOS && !UNITY_EDITOR
-                localPath = "file://" + localPath;
-#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-                localPath = "file://" + localPath;
-#elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-#else
-#endif
-            return localPath;
-        }
-        else
-            return localPath;
-    }
 }

@@ -25,7 +25,7 @@ public class GameProduceUpdateAotMetadata : GameProduceBase<GameProcedureState>
         foreach (var item in MetadataConfig.AotAssemblyMetadatas)
         {
             string finalName = MetadataConfig.GetStripMetadataName(item);
-            string url = Path.Combine(LaunchAOT.Config.RemotePath, "AOTAssemblyMetadataDlls", finalName);
+            string url = Path.Combine(LaunchAOT.Config.RemotePath, LaunchAOT.Config.ServerVersion.ToString(), "AOTAssemblyMetadataDlls", finalName);
             LogHelper.Log("UpdateAotMetadata：" + url);
             using (UnityWebRequest request = UnityWebRequest.Get(url))
             {
@@ -38,7 +38,7 @@ public class GameProduceUpdateAotMetadata : GameProduceBase<GameProcedureState>
                     }
                     else
                     {
-                        string localFilePath = Path.Combine(LaunchAOT.Config.AOT_Assembly_Metadata_Dlls_Dir, finalName);
+                        string localFilePath = Path.Combine(LaunchAOT.Config.HotMetaDataDllPath, finalName);
                         byte[] data = request.downloadHandler.data;
                         LogHelper.Log("update the Metadata ：" + localFilePath);
                         long beginTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
