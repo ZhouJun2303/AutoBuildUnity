@@ -5,7 +5,7 @@ namespace Scripts_AOT.Utility
 {
     public static class LogHelper
     {
-        public const string Log_Flag = "[Hlwd Log]: ";
+        public const string Log_Flag = "LOG C: ";
 
         public static void Log(string str)
         {

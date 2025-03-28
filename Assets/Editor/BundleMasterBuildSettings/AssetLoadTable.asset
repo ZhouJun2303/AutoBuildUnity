@@ -18,7 +18,7 @@ MonoBehaviour:
   EncryptPathFolder: EncryptAssets
   InitScene:
   - {fileID: 102900000, guid: e13a8c2f562729545984d03b0d5a4533, type: 3}
-  GeneratePathCode: 0
-  GenerateCodeScriptPath: 
+  GeneratePathCode: 1
+  GenerateCodeScriptPath: Scripts_HotFix/Path
   AssetsSettings:
   - {fileID: 11400000, guid: 029dd6d2273e9194d852330083f4acd1, type: 2}

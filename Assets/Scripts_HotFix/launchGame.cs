@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
 using MyTaskTest;
+using BM;
+using ET;
 
 public class launchGame : MonoBehaviour
 {
@@ -39,6 +41,8 @@ public class launchGame : MonoBehaviour
         Test5();
 
         StartCoroutine(Custom1Enumerator());
+
+        LoadResTest().Coroutine();
     }
 
     IEnumerator Custom1Enumerator()
@@ -123,5 +127,20 @@ public class launchGame : MonoBehaviour
         Test2();
         Test3();
         Test4();
+    }
+
+    private async ETTask LoadResTest()
+    {
+        Debug.Log("LoadResTest");
+        var res = await AssetComponent.LoadAsync<Sprite>(BPath.Assets_HotRes_egg__png);
+        Debug.Log(res);
+        Transform t = transform.Find("TestImage");
+        if (null != t)
+        {
+            Debug.Log(t);
+            Image image = t.GetComponent<Image>();
+            image.sprite = res;
+        }
+
     }
 }

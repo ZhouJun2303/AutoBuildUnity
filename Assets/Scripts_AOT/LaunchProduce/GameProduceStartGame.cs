@@ -18,17 +18,19 @@ public class GameProduceStartGame : GameProduceBase<GameProcedureState>
     public override void OnProcedureEnter()
     {
         base.OnProcedureEnter();
-        LoadScene().Coroutine();
+        Init().Coroutine();
     }
 
-    private async ETTask LoadScene()
+    private async ETTask Init()
     {
         AssetComponentConfig.DefaultBundlePackageName = "AllBundle";
-        long beginTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
         await AssetComponent.Initialize(AssetComponentConfig.DefaultBundlePackageName);
-        //运行场景
+        LoadScene();
+    }
+
+    private void LoadScene()
+    {
         string SceneResPath = "Assets/Scenes_HotFix/ToolScene.unity";
-        //SceneCtrl.Instance.LoadSceneAsync(SceneResPath, LoadSceneMode.Additive, () =>
         LoadSceneAsync(SceneResPath, LoadSceneMode.Additive, () =>  //SceneCtrl需要场景中有Root节点才能使用，加载初始场景用单独新加的接口
         {
         });

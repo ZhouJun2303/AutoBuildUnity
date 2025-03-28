@@ -189,7 +189,7 @@ public class BuildProject
     public static void BackupBundleAsset()
     {
         int version = ResConfig.Instance.ResVersion;
-        string path = Path.Combine(GetProjectPath(), "ResLocalRecord", version.ToString());
+        string path = Path.Combine(GetProjectPath(), "ResLocalRecord", version.ToString(), "AssetBundles");
         //BuildAssets.CopyFileToTargetFolder(path);
         AssetLoadTable assetLoadTable = AssetDatabase.LoadAssetAtPath<AssetLoadTable>(BundleMasterWindow.AssetLoadTablePath);
         FileHelper.CopyDir(assetLoadTable.BuildBundlePath, path);

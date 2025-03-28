@@ -1,9 +1,20 @@
+using BM;
+using ET;
 using UnityEngine;
 
 public class LaunchAOT : MonoBehaviour
 {
     private FsmCtrl _fsmCtrl = new FsmCtrl();
     public static GameConfig Config = new GameConfig();
+
+    private void Awake()
+    {
+        System.AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+        {
+            AssetLogHelper.LogError(e.ExceptionObject.ToString());
+        };
+        ETTask.ExceptionHandler += AssetLogHelper.LogError;
+    }
 
     void Start()
     {
