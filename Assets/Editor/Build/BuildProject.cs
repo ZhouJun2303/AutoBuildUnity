@@ -198,7 +198,10 @@ public class BuildProject
     [MenuItem("打包/CopyAssetBundleToStreamingAssets")]
     public static void CopyAssetBundleToStreamingAssets()
     {
-        BuildAssets.CopyFileToTargetFolder(AssetComponentConfig.LocalBundlePath);
+        int version = ResConfig.Instance.ResVersion;
+        string path = Path.Combine(GetProjectPath(), "ResLocalRecord", version.ToString(), AssetComponentConfig.LocalBundlePath);
+        AssetLoadTable assetLoadTable = AssetDatabase.LoadAssetAtPath<AssetLoadTable>(BundleMasterWindow.AssetLoadTablePath);
+        FileHelper.CopyDir(assetLoadTable.BuildBundlePath, path);
     }
 
     const string Hot_Update_Dlls = "HotUpdateDlls";

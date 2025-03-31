@@ -122,15 +122,14 @@ public class OnPostprocessBuild_Android : MonoBehaviour
                 {
                     if (files[j].FullName.EndsWith(_ignoreDeleteFolderOrFile[k]))
                     {
-                        delete = false;
                         break;
                     }
                 }
 
                 if (delete)
                 {
-                    EditorUtility.DisplayProgressBar("删除文件", files[i].FullName, j * 1.0f / files.Length * 1.0f);
-                    File.Delete("删除文件" + files[i].FullName);
+                    EditorUtility.DisplayProgressBar("删除文件", files[j].FullName, j * 1.0f / files.Length * 1.0f);
+                    File.Delete(files[j].FullName);
                 }
             }
 

@@ -4,6 +4,12 @@
     <type fullname="IEnumeratorAwaitExtensions" preserve="all" />
     <type fullname="IEnumeratorAwaitExtensions/SimpleCoroutineAwaiter" preserve="all" />
   </assembly>
+  <assembly fullname="BundleMaster">
+    <type fullname="BM.AssetComponent" preserve="all" />
+    <type fullname="ET.ETAsyncTaskMethodBuilder" preserve="all" />
+    <type fullname="ET.ETTask" preserve="all" />
+    <type fullname="ET.ETTask`1" preserve="all" />
+  </assembly>
   <assembly fullname="MyTaskTest">
     <type fullname="MyTaskTest.MyAsyncTaskMethodBuilder" preserve="all" />
     <type fullname="MyTaskTest.MyTask" preserve="all" />
@@ -29,7 +35,9 @@
     <type fullname="UnityEngine.LogType" preserve="all" />
     <type fullname="UnityEngine.Mathf" preserve="all" />
     <type fullname="UnityEngine.MonoBehaviour" preserve="all" />
+    <type fullname="UnityEngine.Object" preserve="all" />
     <type fullname="UnityEngine.Random" preserve="all" />
+    <type fullname="UnityEngine.Sprite" preserve="all" />
     <type fullname="UnityEngine.SystemInfo" preserve="all" />
     <type fullname="UnityEngine.Transform" preserve="all" />
     <type fullname="UnityEngine.Vector3" preserve="all" />
@@ -42,6 +50,7 @@
   <assembly fullname="UnityEngine.UI">
     <type fullname="UnityEngine.UI.Button" preserve="all" />
     <type fullname="UnityEngine.UI.Button/ButtonClickedEvent" preserve="all" />
+    <type fullname="UnityEngine.UI.Image" preserve="all" />
     <type fullname="UnityEngine.UI.Text" preserve="all" />
   </assembly>
   <assembly fullname="mscorlib">

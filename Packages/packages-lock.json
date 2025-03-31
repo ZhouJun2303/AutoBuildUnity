@@ -7,12 +7,6 @@
       "dependencies": {},
       "hash": "64a6d26fa33466c864de9cb0ed90481873cd6250"
     },
-    "com.hlwd.bundlemaster": {
-      "version": "file:BundleMaster",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
-    },
     "com.unity.collab-proxy": {
       "version": "1.15.15",
       "depth": 0,
