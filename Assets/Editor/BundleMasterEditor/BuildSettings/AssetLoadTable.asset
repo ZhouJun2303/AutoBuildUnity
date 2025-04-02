@@ -22,3 +22,4 @@ MonoBehaviour:
   GenerateCodeScriptPath: Scripts_HotFix/Path
   AssetsSettings:
   - {fileID: 11400000, guid: 029dd6d2273e9194d852330083f4acd1, type: 2}
+  - {fileID: 11400000, guid: a1280b0b3842e074093c525686ccd41d, type: 2}

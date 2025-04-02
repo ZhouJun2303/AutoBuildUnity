@@ -1,13 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using BM;
-using dnlib.DotNet;
 using Scripts_AOT.Utility;
 using UnityEditor;
 using UnityEngine;
 using UnityEditor.iOS.Xcode;
-using UnityEditor.iOS.Xcode.PBX;
 using HybridCLR.Editor.AOT;
 using System.Text;
 
@@ -209,7 +206,7 @@ public class BuildProject
     [MenuItem("打包/删除AOT和热更dll文件夹")]
     public static void ClearDllsAndAOTMetadata()
     {
-        var targetPath = Application.streamingAssetsPath;
+        var targetPath = Path.Combine(Application.dataPath, "HotDll");
         //目标路径
         string targetHotUpdateDllsPath = Path.Combine(targetPath, Hot_Update_Dlls);
         string targetAOTAssemblyMetadataDlls = Path.Combine(targetPath, AOT_Assembly_Metadata_Dlls);
@@ -234,7 +231,7 @@ public class BuildProject
     [MenuItem("打包/编译热更dll")]
     public static void CompileHotfixDll()
     {
-        var targetPath = Application.streamingAssetsPath;
+        var targetPath = Path.Combine(Application.dataPath, "HotDll");
         HybridCLR.Editor.Commands.CompileDllCommand.CompileDll(EditorUserBuildSettings.activeBuildTarget);
         AssetDatabase.Refresh();
         //编译dll源文件夹
@@ -345,7 +342,7 @@ public class BuildProject
     [MenuItem("打包/补充元数据裁剪")]
     public static void MyAOTAssemblyMetadataStripper()
     {
-        var targetPath = Application.streamingAssetsPath;
+        var targetPath = Path.Combine(Application.dataPath, "HotDll");
         HybridCLR.Editor.Commands.CompileDllCommand.CompileDll(EditorUserBuildSettings.activeBuildTarget);
         AssetDatabase.Refresh();
         //编译dll源文件夹

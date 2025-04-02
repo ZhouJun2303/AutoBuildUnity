@@ -41,6 +41,7 @@ public class GameProduceUpdateAssetBundle : GameProduceBase<GameProcedureState>
         Dictionary<string, bool> updatePackageBundle = new Dictionary<string, bool>()
         {
             {AssetComponentConfig.DefaultBundlePackageName, false},
+            {"DllBundle", false},
         };
         _updateBundleDataInfo = await AssetComponent.CheckAllBundlePackageUpdate(updatePackageBundle);
         if (!_updateBundleDataInfo.NeedUpdate)

@@ -20,9 +20,6 @@ public class LaunchAOT : MonoBehaviour
     {
         var fsm = _fsmCtrl.CreateFSM<FSM<GameProcedureState>, GameProcedureState>("GameProduce");
         fsm.AddState(new GameProduceLaunch(fsm, GameProcedureState.Launch));
-        fsm.AddState(new GameProduceCheckHotfix(fsm, GameProcedureState.CheckHotfix));
-        fsm.AddState(new GameProduceUpdateHotDll(fsm, GameProcedureState.UpdateHotDll));
-        fsm.AddState(new GameProduceUpdateAotMetadata(fsm, GameProcedureState.UpdateAotMetadata));
         fsm.AddState(new GameProduceUpdateAssetBundle(fsm, GameProcedureState.UpdateAssetBundle));
         fsm.AddState(new GameProduceLoadDll(fsm, GameProcedureState.LoadDll));
         fsm.AddState(new GameProduceStartGame(fsm, GameProcedureState.StartGame));

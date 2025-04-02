@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19f0178207d0f37499a045cc73e64d1b, type: 3}
   m_Name: ResConfig
   m_EditorClassIdentifier: 
-  ResVersion: 2
+  ResVersion: 1

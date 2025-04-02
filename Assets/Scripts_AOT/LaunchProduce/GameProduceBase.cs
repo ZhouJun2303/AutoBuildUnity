@@ -8,9 +8,6 @@ using UnityEngine;
 public enum GameProcedureState
 {
     Launch = 1,     // 开始
-    CheckHotfix,    // 检查热更
-    UpdateHotDll,   // 热更dll
-    UpdateAotMetadata,   // 热更补充元数据
     UpdateAssetBundle,   // 热更资源文件
     LoadDll,    //加载Dll
     StartGame,      // 开始游戏

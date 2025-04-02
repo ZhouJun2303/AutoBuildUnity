@@ -12,6 +12,6 @@ public class GameProduceLaunch : GameProduceBase<GameProcedureState>
     public override void OnProcedureEnter()
     {
         base.OnProcedureEnter();
-        dependenceFsm.SetState(GameProcedureState.CheckHotfix);
+        dependenceFsm.SetState(GameProcedureState.UpdateAssetBundle);
     }
 }
