@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Default Local Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Default Local Group
+  m_Data:
+    m_SerializedData: []
+  m_GUID: ebf07ce8aa7390049bef51d8301d0c54
+  m_SerializeEntries:
+  - m_GUID: 353ba3abea04ad546b3b960f7f56ecc1
+    m_Address: Assets/HotRes/chicken.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 0e01ec33682baad48ae57c4771f69e84
+    m_Address: Assets/HotRes/chicken1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 5b260697bb0f1f047bf8f58c5652e6c5
+    m_Address: Assets/HotRes/conveyer_belt.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 2ba9d2ee6e84ca7458dbbd1229fee27d
+    m_Address: Assets/HotRes/egg.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 68b2c69314c898148b570eb5e67c5e07, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: f8ff87cc6cd9dfc4ca6966485a0e529f, type: 2}
+    - {fileID: 11400000, guid: 4daf6677c3cd179478accaf85a5a96e0, type: 2}

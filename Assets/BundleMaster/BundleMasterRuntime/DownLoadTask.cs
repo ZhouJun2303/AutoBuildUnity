@@ -5,9 +5,6 @@ using System.IO;
 using UnityEngine.Networking;
 using UnityEngine;
 
-#if !BMWebGL
-using LMTD;
-#endif
 
 namespace BM
 {
@@ -22,7 +19,7 @@ namespace BM
         public ETTask DownLoadingKey;
 
         public Dictionary<string, Queue<DownLoadTask>> PackageDownLoadTask;
-        
+
         /// <summary>
         /// 下载的资源分包名称
         /// </summary>
@@ -74,7 +71,7 @@ namespace BM
             }
             Debug.Assert(downLoadData.Data != null, "downLoadData.Data != null");
             int dataLength = downLoadData.Data.Length;
-            
+
             string fileCreatePath = PathUnifiedHelper.UnifiedPath(Path.Combine(DownLoadPackagePath, FileName));
             using (FileStream fs = new FileStream(fileCreatePath, FileMode.Create))
             {
@@ -110,56 +107,56 @@ namespace BM
             UpdateBundleDataInfo.FinishUpdate = true;
             DownLoadingKey.SetResult();
         }
-        
-        
-        public async ETTask ThreadDownLoad()
-        {
-            //计算URL
-            string url = Path.Combine(AssetComponentConfig.BundleServerUrl, PackegName, UnityWebRequest.EscapeURL(FileName));
-            if (FileName.Contains("\\"))
-            {
-                string[] pathSplits = FileName.Split('\\');
-                string filePath = "";
-                string fileUrls = "";
-                for (int i = 0; i < pathSplits.Length - 1; i++)
-                {
-                    filePath += (pathSplits[i] + "/");
-                    fileUrls += (UnityWebRequest.EscapeURL(pathSplits[i]) + "/");
-                }
-                fileUrls += (UnityWebRequest.EscapeURL(pathSplits[pathSplits.Length - 1]));
-                Directory.CreateDirectory(Path.Combine(AssetComponentConfig.HotfixPath, PackegName, filePath));
-                url = Path.Combine(AssetComponentConfig.BundleServerUrl, PackegName, fileUrls);
-            }
-            //计算文件存储路径
-            string fileCreatePath = PathUnifiedHelper.UnifiedPath(Path.Combine(DownLoadPackagePath, FileName));
-            //开始下载
-            LmtDownloadInfo lmtDownloadInfo = await DownloadBundleHelper.DownloadData(url, fileCreatePath, UpdateBundleDataInfo);
-            //说明下载更新已经被取消
-            if (UpdateBundleDataInfo.Cancel)
-            {
-                return;
-            }
-            UpdateBundleDataInfo.AddCRCFileInfo(PackegName, FileName, lmtDownloadInfo.DownLoadFileCRC);
-            UpdateBundleDataInfo.FinishDownLoadBundleCount++;
-            //检查新的需要下载的资源
-            foreach (Queue<DownLoadTask> downLoadTaskQueue in PackageDownLoadTask.Values)
-            {
-                if (downLoadTaskQueue.Count > 0)
-                {
-                    downLoadTaskQueue.Dequeue().ThreadDownLoad().Coroutine();
-                    return;
-                }
-            }
-            //说明下载完成了
-            if (UpdateBundleDataInfo.FinishDownLoadBundleCount < UpdateBundleDataInfo.NeedDownLoadBundleCount)
-            {
-                DownLoadData.ClearPool();
-                return;
-            }
-            UpdateBundleDataInfo.FinishUpdate = true;
-            DownLoadingKey.SetResult();
-        }
-        
+
+
+        //public async ETTask ThreadDownLoad()
+        //{
+        //    //计算URL
+        //    string url = Path.Combine(AssetComponentConfig.BundleServerUrl, PackegName, UnityWebRequest.EscapeURL(FileName));
+        //    if (FileName.Contains("\\"))
+        //    {
+        //        string[] pathSplits = FileName.Split('\\');
+        //        string filePath = "";
+        //        string fileUrls = "";
+        //        for (int i = 0; i < pathSplits.Length - 1; i++)
+        //        {
+        //            filePath += (pathSplits[i] + "/");
+        //            fileUrls += (UnityWebRequest.EscapeURL(pathSplits[i]) + "/");
+        //        }
+        //        fileUrls += (UnityWebRequest.EscapeURL(pathSplits[pathSplits.Length - 1]));
+        //        Directory.CreateDirectory(Path.Combine(AssetComponentConfig.HotfixPath, PackegName, filePath));
+        //        url = Path.Combine(AssetComponentConfig.BundleServerUrl, PackegName, fileUrls);
+        //    }
+        //    //计算文件存储路径
+        //    string fileCreatePath = PathUnifiedHelper.UnifiedPath(Path.Combine(DownLoadPackagePath, FileName));
+        //    //开始下载
+        //    LmtDownloadInfo lmtDownloadInfo = await DownloadBundleHelper.DownloadData(url, fileCreatePath, UpdateBundleDataInfo);
+        //    //说明下载更新已经被取消
+        //    if (UpdateBundleDataInfo.Cancel)
+        //    {
+        //        return;
+        //    }
+        //    UpdateBundleDataInfo.AddCRCFileInfo(PackegName, FileName, lmtDownloadInfo.DownLoadFileCRC);
+        //    UpdateBundleDataInfo.FinishDownLoadBundleCount++;
+        //    //检查新的需要下载的资源
+        //    foreach (Queue<DownLoadTask> downLoadTaskQueue in PackageDownLoadTask.Values)
+        //    {
+        //        if (downLoadTaskQueue.Count > 0)
+        //        {
+        //            downLoadTaskQueue.Dequeue().ThreadDownLoad().Coroutine();
+        //            return;
+        //        }
+        //    }
+        //    //说明下载完成了
+        //    if (UpdateBundleDataInfo.FinishDownLoadBundleCount < UpdateBundleDataInfo.NeedDownLoadBundleCount)
+        //    {
+        //        DownLoadData.ClearPool();
+        //        return;
+        //    }
+        //    UpdateBundleDataInfo.FinishUpdate = true;
+        //    DownLoadingKey.SetResult();
+        //}
+
     }
 #endif
 }

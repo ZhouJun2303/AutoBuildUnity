@@ -36,6 +36,8 @@ public class GameProduceUpdateAssetBundle : GameProduceBase<GameProcedureState>
 
     private async ETTask UpdateAssetBundle()
     {
+        await LaunchAOT.Config.GetAllVersion();
+
         AssetComponentConfig.DefaultBundlePackageName = "AllBundle";
         AssetComponentConfig.BundleServerUrl = Path.Combine(LaunchAOT.Config.RemotePath, LaunchAOT.Config.ServerVersion.ToString(), "AssetBundles");
         Dictionary<string, bool> updatePackageBundle = new Dictionary<string, bool>()

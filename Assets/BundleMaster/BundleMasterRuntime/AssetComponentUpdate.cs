@@ -85,7 +85,7 @@ namespace BM
                         {
                             updateBundleDataInfo.PackageCRCDictionary[bundlePackageName].Add(info[0], crc);
                         }
-                            
+
                     }
                 }
                 else
@@ -142,7 +142,7 @@ namespace BM
             }
             return updateBundleDataInfo;
         }
-        
+
         /// <summary>
         /// 获取所有需要更新的Bundle的文件(不检查文件CRC)
         /// </summary>
@@ -151,7 +151,7 @@ namespace BM
             string[] remoteVersionDataSplits = remoteVersionData[0].Split('|');
             int remoteVersion = int.Parse(remoteVersionDataSplits[1]);
             int localVersion = int.Parse(localVersionData[0].Split('|')[1]);
-            updateBundleDataInfo.PackageToVersion.Add(bundlePackageName, new int[2]{localVersion, remoteVersion});
+            updateBundleDataInfo.PackageToVersion.Add(bundlePackageName, new int[2] { localVersion, remoteVersion });
             if (remoteVersionDataSplits[2] == "origin")
             {
                 updateBundleDataInfo.PackageToType.Add(bundlePackageName, UpdateBundleDataInfo.PackageType.Origin);
@@ -167,7 +167,7 @@ namespace BM
                     updateBundleDataInfo.PackageToType.Add(bundlePackageName, UpdateBundleDataInfo.PackageType.Normal);
                 }
             }
-            
+
             if (localVersion > remoteVersion)
             {
                 AssetLogHelper.LogError("本地版本号优先与远程版本号 " + localVersion + ">" + remoteVersion + "\n"
@@ -284,7 +284,7 @@ namespace BM
                 updateBundleDataInfo.NeedDownLoadBundleCount++;
             }
         }
-        
+
         /// <summary>
         /// 获取所有需要更新的Bundle的文件(计算文件CRC)
         /// </summary>
@@ -293,7 +293,7 @@ namespace BM
             string[] remoteVersionDataSplits = remoteVersionData[0].Split('|');
             int remoteVersion = int.Parse(remoteVersionDataSplits[1]);
             int localVersion = int.Parse(localVersionData[0].Split('|')[1]);
-            updateBundleDataInfo.PackageToVersion.Add(bundlePackageName, new int[2]{localVersion, remoteVersion});
+            updateBundleDataInfo.PackageToVersion.Add(bundlePackageName, new int[2] { localVersion, remoteVersion });
             if (remoteVersionDataSplits[2] == "origin")
             {
                 updateBundleDataInfo.PackageToType.Add(bundlePackageName, UpdateBundleDataInfo.PackageType.Origin);
@@ -343,7 +343,7 @@ namespace BM
                 await finishTcs;
                 _checkCount = 0;
             }
-            
+
             if (!(needUpdateBundles.Count > 0 || remoteVersionData[0] != localVersionData[0]))
             {
                 //说明这个分包不需要更新
@@ -379,7 +379,7 @@ namespace BM
                 finishTcs.SetResult();
             }
         }
-        
+
         /// <summary>
         /// 下载更新
         /// </summary>
@@ -434,8 +434,7 @@ namespace BM
                 {
                     if (downLoadTaskQueue.Count > 0)
                     {
-                        //downLoadTaskQueue.Dequeue().DownLoad().Coroutine();       //webGL 不可以用多线程下载器
-                        downLoadTaskQueue.Dequeue().ThreadDownLoad().Coroutine();
+                        downLoadTaskQueue.Dequeue().DownLoad().Coroutine();
                         firstDownLoadTask++;
                         break;
                     }
@@ -491,15 +490,15 @@ namespace BM
                 CreateUpdateLogFile(Path.Combine(AssetComponentConfig.HotfixPath, packageName, "VersionLogs.txt"),
                     System.Text.Encoding.UTF8.GetString(versionLogsData));
             }
-            
+
             updateBundleDataInfo.SmoothProgress = 100;
             DownLoadAction -= updateBundleDataInfo.UpdateProgressAndSpeedCallBack;
             updateBundleDataInfo.FinishCallback?.Invoke();
             AssetLogHelper.LogError("下载完成");
         }
-        
-#endif 
-        
+
+#endif
+
     }
-    
+
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ET;
 
 namespace BM
@@ -22,12 +23,12 @@ namespace BM
             }
             remove => this.CompleteCallback -= value;
         }
-        
+
         /// <summary>
         /// 是否进池
         /// </summary>
         private bool isPool;
-        
+
         /// <summary>
         /// 加载出来的资源
         /// </summary>
@@ -42,7 +43,7 @@ namespace BM
         {
             this.isPool = isPool;
         }
-        
+
         internal void Init(string assetPath, string bundlePackageName, bool haveHandler)
         {
             AssetPath = assetPath;
@@ -119,12 +120,13 @@ namespace BM
                 AssetLogHelper.LogError("依赖的资源没有找到对应的类: " + dependFile);
             }
         }
-    
+
         /// <summary>
         /// 同步加载所有的Bundle
         /// </summary>
         internal void Load()
         {
+            UnityEngine.Debug.Log("Load + " + BundlePackageName);
             LoadBase.LoadAssetBundle(BundlePackageName);
             for (int i = 0; i < LoadDepends.Count; i++)
             {
@@ -172,7 +174,7 @@ namespace BM
             LoadState = LoadState.Finish;
             FileAssetBundle = LoadBase.AssetBundle;
         }
-        
+
         /// <summary>
         /// 强制异步加载完成
         /// </summary>
@@ -194,7 +196,7 @@ namespace BM
             FileAssetBundle = LoadBase.AssetBundle;
             LoadState = LoadState.Finish;
         }
-        
+
         /// <summary>
         /// 清理引用
         /// </summary>
@@ -242,6 +244,6 @@ namespace BM
                 LoadHandlerFactory.EnterPool(this);
             }
         }
-        
+
     }
 }

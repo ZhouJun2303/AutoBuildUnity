@@ -1,9 +1,11 @@
+using BM;
 using ET;
 using HybridCLR;
 using Scripts_AOT.Utility;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -21,9 +23,9 @@ public class GameProduceLoadDll : GameProduceBase<GameProcedureState>
 
     private async ETTask LoadDll()
     {
+        await AssetComponent.Initialize("DllBundle");
         await LoadAotMetadata();
         await LoadHotDll();
-
         dependenceFsm.SetState(GameProcedureState.StartGame);
     }
     private async ETTask LoadAotMetadata()
@@ -31,56 +33,39 @@ public class GameProduceLoadDll : GameProduceBase<GameProcedureState>
         foreach (var aotDllName in MetadataConfig.AotAssemblyMetadatas)
         {
             string finalName = MetadataConfig.GetStripMetadataName(aotDllName);
-            string path = Path.Combine(LaunchAOT.Config.RunTimeAotMetaHotDllPath, finalName);
+            string path = Path.Combine("Assets/HotDll/AOTAssemblyMetadataDlls", finalName + ".bytes");
             LogHelper.Log("LoadAotMetadata：" + path);
-            UnityWebRequest request = UnityWebRequest.Get(path);
-            request.timeout = 5;
-            await request.SendWebRequest();
-            if (request.isDone)
+            var asset = await AssetComponent.LoadAsync<TextAsset>(path, "DllBundle");
+            if (asset == null)
             {
-                if (request.result != UnityWebRequest.Result.Success)
-                {
-                    LogHelper.LogError("load MetadataForAOTAssembly Error: " + request.error + " url = " + path);
-                }
-                else
-                {
-                    byte[] dllBytes = request.downloadHandler.data;
-                    LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(dllBytes, HomologousImageMode.SuperSet);
-                    if (err != LoadImageErrorCode.OK)
-                    {
-                        LogHelper.Log($"LoadMetadataForAOTAssembly:{finalName}. ret:{err}");
-                    }
-                }
+                Debug.LogError($"{stateID}: cannot find AOTdll path: {path}");
+                continue;
             }
-            await new WaitForEndOfFrame();
+            byte[] dllBytes = asset.bytes;
+            // 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
+            var err = HybridCLR.RuntimeApi.LoadMetadataForAOTAssembly(dllBytes, HybridCLR.HomologousImageMode.Consistent);
+            if (err == HybridCLR.LoadImageErrorCode.OK)
+                Debug.Log($"{stateID}: LoadMetadataForAOTAssembly:{aotDllName}. ret:{err}");
+            else
+                Debug.LogError($"{stateID}: LoadMetadataForAOTAssembly:{aotDllName}. ret:{err}");
         }
     }
 
     private async ETTask LoadHotDll()
     {
         string LaunchDllFileName = "Game.dll.bytes";
-        string launchDllPath = Path.Combine(LaunchAOT.Config.RunTimeHotDllPath, LaunchDllFileName);
+        string launchDllPath = Path.Combine("Assets/HotDll/HotUpdateDlls", LaunchDllFileName);
         LogHelper.Log("launchDllPath：" + launchDllPath);
-        UnityWebRequest request = UnityWebRequest.Get(launchDllPath);
-        request.timeout = 5;
-        long beginTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-        await request.SendWebRequest();
-        if (request.isDone)
+        var dllBytes = await AssetComponent.LoadAsync<TextAsset>(launchDllPath, "DllBundle");
+        if (dllBytes == null)
         {
-            if (request.result != UnityWebRequest.Result.Success)
-            {
-                LogHelper.LogError("No Finded LaunchDll：" + launchDllPath);
-            }
-            else
-            {
-                byte[] data = request.downloadHandler.data;
-                LogHelper.Log($"热更dll 读取 IO消耗：{((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - beginTime)}ms");
-
-                //加密代码 解密运行
-                beginTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                LogHelper.Log($"代码解密耗时：{((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - beginTime)}ms");
-                Assembly.Load(data);
-            }
+            Debug.LogError("Error 加载热更dll失败：" + launchDllPath);
+            return;
         }
+
+#if UNITY_EDITOR
+#else
+        Assembly gameAss = System.Reflection.Assembly.Load(dllBytes.bytes);
+#endif
     }
 }

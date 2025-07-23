@@ -12,10 +12,14 @@ namespace BM
         /// </summary>
         private static BundleMasterRuntimeConfig _bmRuntimeConfig = null;
 
+#if UNITY_EDITOR
         /// <summary>
         /// 资源更新目录 Application.dataPath + "/../HotfixBundles/"
         /// </summary>
-        public static string HotfixPath = "";
+        public static string HotfixPath { get; set; } = Application.dataPath + "/../HotfixBundles/";// 编辑器下方便用
+#else
+        public static string HotfixPath { get; set; } = Application.persistentDataPath;
+#endif
 
         /// <summary>
         /// 存放本地Bundle的位置 Application.streamingAssetsPath;
@@ -26,12 +30,12 @@ namespace BM
         /// 资源服务器的地址 http://192.168.50.157/BundleData/
         /// </summary>
         public static string BundleServerUrl = "http://192.168.50.157/BundleData/";
-        
+
         /// <summary>
         /// 默认加载的Bundle名
         /// </summary>
         public static string DefaultBundlePackageName = "";
-        
+
         private static void InitRuntimeConfig()
         {
             if (_bmRuntimeConfig == null)
@@ -39,7 +43,7 @@ namespace BM
                 _bmRuntimeConfig = Resources.Load<BundleMasterRuntimeConfig>("BMConfig");
             }
         }
-        
+
         /// <summary>
         /// 加载模式
         /// </summary>
@@ -75,6 +79,6 @@ namespace BM
                 return _bmRuntimeConfig.ReDownLoadCount;
             }
         }
-        
+
     }
 }

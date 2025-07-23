@@ -46,34 +46,6 @@ public class GameConfig
         return localPath;
     }
 
-    public string RunTimeHotDllPath
-    {
-        get
-        {
-            string localPath = Path.Combine(StreamVersion >= PersisentVersion ? Application.streamingAssetsPath : Application.persistentDataPath, "HotUpdateDlls");
-
-            return GetPathByPlatform(localPath);
-        }
-    }
-
-    public string RunTimeAotMetaHotDllPath
-    {
-        get
-        {
-            string localPath = Path.Combine(StreamVersion >= PersisentVersion ? Application.streamingAssetsPath : Application.persistentDataPath, "AOTAssemblyMetadataDlls");
-            return GetPathByPlatform(localPath);
-        }
-    }
-
-    public string RunTimeAssetPath
-    {
-        get
-        {
-            string localPath = Path.Combine(StreamVersion >= PersisentVersion ? Application.streamingAssetsPath : Application.persistentDataPath, "AssetBundles");
-            return GetPathByPlatform(localPath);
-        }
-    }
-
     public GameConfig()
     {
         HotDllPath = Path.Combine(PersistentDataPath, "HotUpdateDlls/");

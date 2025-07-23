@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Text;
 using ET;
 
@@ -13,9 +14,7 @@ namespace BM
         internal static string BundleFileExistPath(string bundlePackageName, string fileName, bool isWebLoad)
         {
             string path = GetBasePath(bundlePackageName, fileName);
-            if (isWebLoad)
-            {
-                //通过webReq加载
+            UnityEngine.Debug.Log("GetBasePath + " + path);
 #if UNITY_ANDROID && !UNITY_EDITOR
                 if (!path.Contains("file:///"))
                 {
@@ -28,19 +27,8 @@ namespace BM
 #elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
 #else
 #endif
-                return path;
-            }
-            else
-            {
-                //直接加载
-#if UNITY_ANDROID && !UNITY_EDITOR
-#elif UNITY_IOS && !UNITY_EDITOR
-#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-#elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-#else  
-#endif
-                return path;
-            }
+            UnityEngine.Debug.Log("拼接路径 + " + path);
+            return path;
         }
 
         /// <summary>
@@ -56,10 +44,17 @@ namespace BM
             else
             {
                 string path = Path.Combine(AssetComponentConfig.HotfixPath, bundlePackageName, fileName);
+                UnityEngine.Debug.Log("HotfixPath AA + " + path);
                 if (!File.Exists(path))
                 {
+
                     //热更目录不存在，返回streaming目录
                     path = Path.Combine(AssetComponentConfig.LocalBundlePath, bundlePackageName, fileName);
+                    UnityEngine.Debug.Log("streaming 11 + " + path);
+                }
+                else
+                {
+                    UnityEngine.Debug.Log("HotfixPath 11 + " + path);
                 }
                 //热更目录存在，返回热更目录
                 return path;
@@ -79,7 +74,7 @@ namespace BM
             }
             return System.Text.Encoding.UTF8.GetString(data);
         }
-        
+
         /// <summary>
         /// 创建更新后的Log文件
         /// </summary>
@@ -94,7 +89,7 @@ namespace BM
                 sw.WriteLine(sb.ToString());
             }
         }
-        
+
     }
 
 }

@@ -8,4 +8,5 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes_AOT/Launch.unity
     guid: e13a8c2f562729545984d03b0d5a4533
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: fccfc3e9018712f42b45aaeacdc9bd5b, type: 2}

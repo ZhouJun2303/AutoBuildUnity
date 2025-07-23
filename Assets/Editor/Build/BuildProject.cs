@@ -253,7 +253,6 @@ public class BuildProject
         string targetAOTAssemblyMetadataDlls = Path.Combine(targetPath, AOT_Assembly_Metadata_Dlls);
 
         int version = ResConfig.Instance.ResVersion;
-        string backUpPath = Path.Combine(GetProjectPath(), "ResLocalRecord", version.ToString());
 
         if (!Directory.Exists(targetPath))
         {
@@ -270,21 +269,6 @@ public class BuildProject
             Directory.CreateDirectory(targetAOTAssemblyMetadataDlls);
         }
 
-        if (!Directory.Exists(backUpPath))
-        {
-            Directory.CreateDirectory(backUpPath);
-        }
-        string backUpHotDll = Path.Combine(backUpPath, Hot_Update_Dlls);
-        if (!Directory.Exists(backUpHotDll))
-        {
-            Directory.CreateDirectory(backUpHotDll);
-        }
-
-        string backUpMetaDll = Path.Combine(backUpPath, AOT_Assembly_Metadata_Dlls);
-        if (!Directory.Exists(backUpMetaDll))
-        {
-            Directory.CreateDirectory(backUpMetaDll);
-        }
 
         DeleteHelper.DeleteDir(targetAOTAssemblyMetadataDlls);
 
@@ -299,6 +283,7 @@ public class BuildProject
         foreach (string name in MetadataConfig.AotAssemblyMetadatas)
         {
             string finalName = MetadataConfig.GetStripMetadataName(name);
+            string targetName = finalName + ".bytes";
             string fullName = ConvertPath(Path.Combine(aotMetadataDllsPath, finalName));
             Debug.Log($"fullpath {fullName}");
             if (!File.Exists(fullName))
@@ -313,8 +298,7 @@ public class BuildProject
             hotUpdateFileInfo.Size = data.Length;
             hotUpdateFileInfo.Version = HashHelper.GetHashString(data, HashAlgorithmType.MD5);
             aotLocalVersionDic.Add(finalName, hotUpdateFileInfo);
-            File.Copy(fullName, ConvertPath(Path.Combine(targetAOTAssemblyMetadataDlls, finalName)), true);
-            File.Copy(fullName, ConvertPath(Path.Combine(backUpMetaDll, finalName)), true);
+            File.Copy(fullName, ConvertPath(Path.Combine(targetAOTAssemblyMetadataDlls, targetName)), true);
         }
         Debug.Log("AOT 补充元数据 版本信息处理完毕");
 
@@ -333,7 +317,6 @@ public class BuildProject
             hotUpdateLocalVersionDic.Add(targetName, hotUpdateFileInfo);
             string filePath = ConvertPath(Path.Combine(targetHotUpdateDllsPath, targetName));
             File.WriteAllBytes(filePath, data);
-            File.Copy(filePath, ConvertPath(Path.Combine(backUpHotDll, targetName)), true);
         }
         AssetDatabase.Refresh();
         Debug.Log("热更dll 版本信息处理完毕");
