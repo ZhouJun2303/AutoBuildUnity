@@ -140,13 +140,13 @@ public class BuildProject
     public static void TestBuildSuccess()
     {
         Debug.Log("TestBuildSuccess");  
-        EditorApplication.Exit(-1);
+        EditorApplication.Exit(0);
     }
 
     public static void TestBuildFail()
     {
         Debug.Log("TestBuildFail");  
-        EditorApplication.Exit(0);
+        EditorApplication.Exit(-1);
     }
 
     [MenuItem("打包/删除AB包资源缓存")]
