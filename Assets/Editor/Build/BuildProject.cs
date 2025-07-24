@@ -137,6 +137,18 @@ public class BuildProject
         return Path.Combine(GetProjectPath(), _tempBuildFolderName);
     }
 
+    public static void TestBuildSuccess()
+    {
+        Debug.Log("TestBuildSuccess");  
+        EditorApplication.Exit(-1);
+    }
+
+    public static void TestBuildFail()
+    {
+        Debug.Log("TestBuildFail");  
+        EditorApplication.Exit(0);
+    }
+
     [MenuItem("打包/删除AB包资源缓存")]
     public static void ClearABBundleCached()
     {
