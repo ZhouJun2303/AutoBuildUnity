@@ -137,15 +137,17 @@ public class BuildProject
         return Path.Combine(GetProjectPath(), _tempBuildFolderName);
     }
 
+    [MenuItem("打包/Test/Build Success")]
     public static void TestBuildSuccess()
     {
-        Debug.Log("TestBuildSuccess");  
+        Debug.Log("TestBuildSuccess");
         EditorApplication.Exit(0);
     }
 
+    [MenuItem("打包/Test/Build Fail")]
     public static void TestBuildFail()
     {
-        Debug.Log("TestBuildFail");  
+        Debug.Log("TestBuildFail");
         EditorApplication.Exit(-1);
     }
 
