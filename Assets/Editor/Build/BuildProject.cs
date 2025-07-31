@@ -140,14 +140,14 @@ public class BuildProject
     [MenuItem("打包/Test/Build Success")]
     public static void TestBuildSuccess()
     {
-        Debug.Log("TestBuildSuccess");
+        Debug.Log("打包日志: TestBuildSuccess");
         EditorApplication.Exit(0);
     }
 
     [MenuItem("打包/Test/Build Fail")]
     public static void TestBuildFail()
     {
-        Debug.Log("TestBuildFail");
+        Debug.Log("打包日志: TestBuildFail");
         EditorApplication.Exit(-1);
     }
 
