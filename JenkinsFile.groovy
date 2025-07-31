@@ -25,26 +25,10 @@ pipeline {
         stage('Unity Git Sync') {
             steps {
                 timeout(time: 1, unit: 'MINUTES') {
-                    bat '''
-                        cd  "%UNITY_PROJECT_PATH%"
-                        git remote set-url origin https://gitee.com/JUN-ZHOU/AutoBuildUnity.git  
-                        git fetch --all  
-                        git reset --hard  
-                        git clean -fd  
-                    '''
-                }
-            }
-        }
-         stage('Android Git Sync') {
-            steps {
-                timeout(time: 1, unit: 'MINUTES') {
-                    bat '''
-                        cd  "%ANDROID_PROJECT_PATH%"
-                        git remote set-url origin https://gitee.com/JUN-ZHOU/AutoBuildUnity_Build.git 
-                        git fetch --all  
-                        git reset --hard  
-                        git clean -fd  
-                    '''
+                    script {
+                       bat 'cd %UNITY_PROJECT_PATH% && git checkout -- .'
+                       bat 'cd %UNITY_PROJECT_PATH% && git pull'
+                    }
                 }
             }
         }
@@ -86,6 +70,16 @@ pipeline {
                "C:\\Unity\\UnityEditor\\Unity 2020.3.33f1\\Editor\\Unity.exe" -keep -batchmode -projectPath C:\\MyGit\\AutoBuildUnity -executeMethod BuildProject.TestBuildSuccess -logFile C:\\IIS_ServerData\\PipelineTEST\\UnityLog\\100.log --productName:Idle_Lose_Weight --version:1.0.0 -buildTarget:Android -customParam:1
                '''
            }
+        }
+        stage('Android Git Sync') {
+            steps {
+                timeout(time: 1, unit: 'MINUTES') {
+                    script {
+                       bat 'cd %ANDROID_PROJECT_PATH% && git checkout -- .'
+                       bat 'cd %UNITY_PROJECT_PATH% && git pull'
+                    }
+                }
+            }
         }   
     }
 }
