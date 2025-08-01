@@ -11,9 +11,9 @@ pipeline {
         //Android 项目路径
         ANDROID_PROJECT_PATH = 'C:\\MyGit\\AutoBuildUnity_Build'
         //UnityLog Path
-        UNITY_LOG_PATH = "C:\\IIS_ServerData\\${PROJECT_NAME}\\UnityLog\\${VERSION_NAME}.log"
+        UNITY_LOG_PATH = "C:\\IIS_ServerData\\${PROJECT_NAME}\\UnityLog\\V${VERSION_CODE}\\"
         //包体输出目录
-        BUILD_OUTPUT_PATH = "C:\\IIS_ServerData\\${PROJECT_NAME}\\BuildOutput\\${VERSION_NAME}"
+        BUILD_OUTPUT_PATH = "C:\\IIS_ServerData\\${PROJECT_NAME}\\BuildOutput\\V${VERSION_CODE}\\"
     }
     stages {
         stage('Log And Init') {
@@ -28,10 +28,10 @@ pipeline {
                         @echo %BUILD_OUTPUT_PATH%
                     '''
 
-                      // 获取当前时间并格式化
-                    def currentTime = new Date().format("yyyy-MM-dd_HH-mm-ss")
+                    // 获取当前时间并格式化
+                    def currentTime = new Date().format('yyyy_MM_dd_HH_mm_ss')
                     echo "当前时间: ${currentTime}"
-                    
+
                     // 将当前时间传递给后续的 bat 脚本
                     env.CURRENT_TIME = currentTime
                 }
@@ -84,7 +84,7 @@ pipeline {
             steps {
                 timeout(time: 60, unit: 'MINUTES') {
                     bat '''
-                   "%UNITY_EDITOR_PATH%" -keep -batchmode -projectPath %UNITY_PROJECT_PATH% -executeMethod BuildProject.TestBuildSuccess -logFile %UNITY_LOG_PATH% --productName:%PROJECT_NAME% --version:%VERSION_CODE% -buildTarget:Android -customParam:%UNITY_CUSTOME_PARAM%
+                   "%UNITY_EDITOR_PATH%" -keep -batchmode -projectPath %UNITY_PROJECT_PATH% -executeMethod BuildProject.TestBuildSuccess -logFile %UNITY_LOG_PATH%%CURRENT_TIME%.log --productName:%PROJECT_NAME% --version:%VERSION_CODE% -buildTarget:Android -customParam:%UNITY_CUSTOME_PARAM%
                    '''
                 }
             }
@@ -116,7 +116,7 @@ pipeline {
                 timeout(time: 60, unit: 'MINUTES') {
                     bat '''
                     cd %ANDROID_PROJECT_PATH%
-                    gradlew syncReleaseLibJars
+                    gradlew syncReleaseLibJars --stacktrace
                    '''
                 }
             }
@@ -128,29 +128,72 @@ pipeline {
                     script {
                         bat '''
                             cd %ANDROID_PROJECT_PATH%
-                            gradlew.bat assembleRelease  --stacktrace
+                            gradlew.bat assembleRelease -PcustomName=%PROJECT_NAME%_%VERSION_CODE%_Release_%CURRENT_TIME% -PversionCode=%VERSION_CODE% -PversionName=%VERSION_NAME% --stacktrace
                             '''
-                        // bat '''
-                        //     cd %ANDROID_PROJECT_PATH%
-                        //     apksigner sign --ks %pstoreFilefile%  --ks-pass pass:%storePassword%  --ks-key-alias %keyAlias% --key-pass pass:%keyPassword%
-                        //     '''
+                        bat '''
+                            cd %ANDROID_PROJECT_PATH%
+                            set "source=%ANDROID_PROJECT_PATH%\\launcher\\build\\outputs\\apk\\release\\%PROJECT_NAME%_%VERSION_CODE%_Release_%CURRENT_TIME%.apk"
+                            apksigner sign --ks %pstoreFilefile%  --ks-pass pass:%storePassword%  --ks-key-alias %keyAlias% --key-pass pass:%keyPassword% --in %source% --out %source% 
+                            '''
                         bat '''
                             @echo off
-                            set "source=%ANDROID_PROJECT_PATH%\\launcher\\build\\outputs\\apk\\release\\launcher-release-unsigned.apk"
-                            set "dest=%BUILD_OUTPUT_PATH%\\%PROJECT_NAME%_%VERSION_NAME%_Release_%CURRENT_TIME%.apk"
-                        
+                            set "source=%ANDROID_PROJECT_PATH%\\launcher\\build\\outputs\\apk\\release\\%PROJECT_NAME%_%VERSION_CODE%_Release_%CURRENT_TIME%.apk"
+                            set "dest=%BUILD_OUTPUT_PATH%%PROJECT_NAME%_%VERSION_CODE%_Release_%CURRENT_TIME%.apk"
+
                             :: 创建目标目录（自动创建父目录）
                             if not exist "%dest%\\.." mkdir "%dest%\\.." 2>&1 || (
                                 echo Failed to create target directory
                                 exit /b 1
                             )
-                        
+
                             :: 检查源文件存在
                             if not exist "%source%" (
                                 echo Source file not found: %source%
                                 exit /b 2
                             )
-                        
+
+                            :: 执行拷贝
+                            copy /y "%source%" "%dest%" 2>&1 || (
+                                echo Copy failed
+                                exit /b 3
+                            )
+                        '''
+                    }
+                }
+            }
+        }
+        stage('Build Debug APK') {
+            when { expression { ONLY_RELEASE == 'false' && BUILD_ANDROID_APK == 'true' } }
+            steps {
+                timeout(time: 60, unit: 'MINUTES') {
+                    script {
+                         bat '''
+                            cd %ANDROID_PROJECT_PATH%
+                            gradlew.bat assembleDebug -ParchivesBaseName=%PROJECT_NAME%_%VERSION_CODE%_Debug _%CURRENT_TIME% -PversionCode=%VERSION_CODE% -PversionName=%VERSION_NAME% --stacktrace
+                            '''
+                        bat '''
+                            cd %ANDROID_PROJECT_PATH%
+                            set "source=%ANDROID_PROJECT_PATH%\\launcher\\build\\outputs\\apk\\debug\\%PROJECT_NAME%_%VERSION_CODE%_Debug_%CURRENT_TIME%.apk"
+                            apksigner sign --ks %pstoreFilefile%  --ks-pass pass:%storePassword%  --ks-key-alias %keyAlias% --key-pass pass:%keyPassword% --in %source% --out %source% 
+                            '''
+                        bat '''
+                            @echo off
+                            set "source=%ANDROID_PROJECT_PATH%\\launcher\\build\\outputs\\apk\\debug\\%PROJECT_NAME%_%VERSION_CODE%_Debug_%CURRENT_TIME%.apk"
+                            set "dest=%BUILD_OUTPUT_PATH%%PROJECT_NAME%_%VERSION_CODE%_Debug_%CURRENT_TIME%.apk"
+
+
+                            :: 创建目标目录（自动创建父目录）
+                            if not exist "%dest%\\.." mkdir "%dest%\\.." 2>&1 || (
+                                echo Failed to create target directory
+                                exit /b 1
+                            )
+
+                            :: 检查源文件存在
+                            if not exist "%source%" (
+                                echo Source file not found: %source%
+                                exit /b 2
+                            )
+
                             :: 执行拷贝
                             copy /y "%source%" "%dest%" 2>&1 || (
                                 echo Copy failed
@@ -168,7 +211,7 @@ pipeline {
                     script {
                         bat '''
                             cd %ANDROID_PROJECT_PATH%
-                            gradlew.bat bundleRelease  --stacktrace
+                            gradlew.bat bundleRelease -PversionCode=%VERSION_CODE% -PversionName=%VERSION_NAME% --stacktrace
                             '''
                         // bat '''
                         //     cd %ANDROID_PROJECT_PATH%
@@ -176,21 +219,21 @@ pipeline {
                         //     '''
                         bat '''
                             @echo off
-                            set "source=%ANDROID_PROJECT_PATH%\\launcher\\build\\outputs\\apk\\release\\launcher-release-unsigned.aab"
-                            set "dest=%BUILD_OUTPUT_PATH%\\%PROJECT_NAME%_%VERSION_NAME%_Release_%CURRENT_TIME%.aab"
-                        
+                            set "source=%ANDROID_PROJECT_PATH%\\launcher\\build\\outputs\\bundle\\release\\launcher-release.aab"
+                            set "dest=%BUILD_OUTPUT_PATH%%PROJECT_NAME%_%VERSION_CODE%_Release_%CURRENT_TIME%.aab"
+
                             :: 创建目标目录（自动创建父目录）
                             if not exist "%dest%\\.." mkdir "%dest%\\.." 2>&1 || (
                                 echo Failed to create target directory
                                 exit /b 1
                             )
-                        
+
                             :: 检查源文件存在
                             if not exist "%source%" (
                                 echo Source file not found: %source%
                                 exit /b 2
                             )
-                        
+
                             :: 执行拷贝
                             copy /y "%source%" "%dest%" 2>&1 || (
                                 echo Copy failed
@@ -201,14 +244,14 @@ pipeline {
                 }
             }
         }
-        stage('Build Debug APK') {
-            when { expression { ONLY_RELEASE == 'false' } }
+        stage('Build Debug AAB') {
+            when { expression { ONLY_RELEASE == 'false' && BUILD_ANDROID_AAB == 'true' } }
             steps {
                 timeout(time: 60, unit: 'MINUTES') {
                     script {
                         bat '''
                             cd %ANDROID_PROJECT_PATH%
-                            gradlew.bat assembleDebug --stacktrace
+                            gradlew.bat bundleDebug -PversionCode=%VERSION_CODE% -PversionName=%VERSION_NAME% --stacktrace
                             '''
                         // bat '''
                         //     cd %ANDROID_PROJECT_PATH%
@@ -216,21 +259,21 @@ pipeline {
                         //     '''
                         bat '''
                             @echo off
-                            set "source=%ANDROID_PROJECT_PATH%\\launcher\\build\\outputs\\apk\\Debug\\launcher-Debug-unsigned.apk"
-                            set "dest=%BUILD_OUTPUT_PATH%\\%PROJECT_NAME%_%VERSION_NAME%_Debug_%CURRENT_TIME%.apk"
-                        
+                            set "source=%ANDROID_PROJECT_PATH%\\launcher\\build\\outputs\\bundle\\debug\\launcher-debug.aab"
+                            set "dest=%BUILD_OUTPUT_PATH%%PROJECT_NAME%_%VERSION_CODE%_Debug_%CURRENT_TIME%.aab"
+
                             :: 创建目标目录（自动创建父目录）
                             if not exist "%dest%\\.." mkdir "%dest%\\.." 2>&1 || (
                                 echo Failed to create target directory
                                 exit /b 1
                             )
-                        
+
                             :: 检查源文件存在
                             if not exist "%source%" (
                                 echo Source file not found: %source%
                                 exit /b 2
                             )
-                        
+
                             :: 执行拷贝
                             copy /y "%source%" "%dest%" 2>&1 || (
                                 echo Copy failed
