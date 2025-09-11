@@ -4,12 +4,11 @@ pipeline {
         //项目名称
         PROJECT_NAME = 'PipelineTEST'
         //Unity 编辑器路径
-        // UNITY_EDITOR_PATH = "C:\\Program Files\\Unity\\Hub\\Editor\\2021.3.20f1\\Editor\\Unity.exe"
-        UNITY_EDITOR_PATH = 'C:\\Unity\\UnityEditor\\Unity 2020.3.33f1\\Editor\\Unity.exe'
+        UNITY_EDITOR_PATH = "D:\\Unity\\Unity 2021.3.20f1\\Editor\\Unity.exe"
         //Unity 项目路径
-        UNITY_PROJECT_PATH = 'C:\\MyGit\\AutoBuildUnity'
+        UNITY_PROJECT_PATH = 'D:\\MyGit\\AutoBuildUnity'
         //Android 项目路径
-        ANDROID_PROJECT_PATH = 'C:\\MyGit\\AutoBuildUnity_Build'
+        ANDROID_PROJECT_PATH = 'D:\\MyGit\\AutoBuildUnity_Build'
         //UnityLog Path
         UNITY_LOG_PATH = "C:\\IIS_ServerData\\${PROJECT_NAME}\\UnityLog\\V${VERSION_CODE}\\"
         //包体输出目录
