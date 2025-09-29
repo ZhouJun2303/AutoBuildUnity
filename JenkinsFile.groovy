@@ -4,9 +4,18 @@ pipeline {
     environment {
         BUILD_OUTPUT_PATH = "C:\\IIS_ServerData\\${JOB_BASE_NAME}\\BuildOutput\\V${VERSION_CODE}\\"
         UNITY_LOG_PATH = "C:\\IIS_ServerData\\${JOB_BASE_NAME}\\UnityLog\\V${VERSION_CODE}\\"
+        BUILD_START_TIME = "${System.currentTimeMillis()}"
     }
 
     stages {
+        stage('Notify Build Start') {
+            steps {
+                script {
+                    generatedFiles = []
+                    sendFeishuCardMsg("构建开始", "项目: ${JOB_BASE_NAME}\n版本: ${VERSION_CODE}", '', '', '', '', 2)
+                }
+            }
+        }
 
         stage('Check Environment') {
             steps {
@@ -26,12 +35,9 @@ pipeline {
         stage('Log And Init') {
             steps {
                 script {
-                    // 获取当前时间
                     def currentTime = new Date().format('yyyy_MM_dd_HH_mm_ss')
                     env.CURRENT_TIME = currentTime
-                    echo "当前时间: ${currentTime}"
 
-                    // 打印环境变量
                     bat """
                         @echo JOB_BASE_NAME=%JOB_BASE_NAME%
                         @echo VERSION_CODE=%VERSION_CODE%
@@ -45,7 +51,6 @@ pipeline {
                         @echo CURRENT_TIME=%CURRENT_TIME%
                     """
 
-                    // 判断并创建目录
                     bat """
                         if not exist "%BUILD_OUTPUT_PATH%" mkdir "%BUILD_OUTPUT_PATH%"
                         if not exist "%UNITY_LOG_PATH%" mkdir "%UNITY_LOG_PATH%"
@@ -136,46 +141,16 @@ pipeline {
             steps {
                 script {
                     dir(env.ANDROID_PROJECT_PATH) {
-                        def apkName = "${env.JOB_BASE_NAME}_${env.VERSION_CODE}_Release_${env.CURRENT_TIME}"
-                        def apkFullName = "${env.JOB_BASE_NAME}_${env.VERSION_CODE}_Release_${env.CURRENT_TIME}.apk"
-                        def source = "${env.ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\apk\\release\\${apkFullName}"
-                        def dest = "${env.BUILD_OUTPUT_PATH}${apkName}_signed.apk"
-
+                        def apkName = "${JOB_BASE_NAME}_${VERSION_CODE}_Release_${CURRENT_TIME}"
+                        def apkFullName = "${apkName}.apk"
+                        def source = "${ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\apk\\release\\${apkFullName}"
+                        def dest = "${BUILD_OUTPUT_PATH}${apkFullName}"
                         try {
-                            // 1️⃣ 构建 APK
-                            echo "===== 开始构建 Release APK ====="
-                            bat "gradlew.bat assembleRelease -PcustomName=${apkName} -PversionCode=${env.VERSION_CODE} -PversionName=${env.VERSION_NAME} --stacktrace"
-
-                            // 构建完成后列出 release 目录内容
-                            def releaseDir = "${env.ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\apk\\release"
-                            bat "echo ===== Release 目录文件列表 ====="
-                            bat "dir /b \"${releaseDir}\""
-
-                            bat """
-                                if not exist "${source}" (
-                                    echo ERROR: 源 APK 文件不存在
-                                    exit /b 1
-                                )
-                            """
-
-                            echo "Source APK: ${source}"
-                            echo "===== 构建完成 ====="
-
-                            // 2️⃣ 签名 APK
-                            echo "===== 开始签名 ====="
-                            bat "call \"${env.APKSIGNER}\" sign --ks \"${env.storeFilefile}\" --ks-pass pass:${env.storePassword} --key-pass pass:${env.keyPassword} --ks-key-alias ${env.keyAlias} --in \"${source}\" --out \"${source}\""
-                            echo "===== 签名完成 ====="
-
-                            // 3️⃣ 拷贝到输出目录
-                            bat "if not exist \"${env.BUILD_OUTPUT_PATH}\" mkdir \"${env.BUILD_OUTPUT_PATH}\""
+                            bat "gradlew.bat assembleRelease -PcustomName=${apkName} -PversionCode=${VERSION_CODE} -PversionName=${VERSION_NAME} --stacktrace"
                             bat "copy /y \"${source}\" \"${dest}\""
-                            echo "拷贝完成: ${dest}"
-
+                            generatedFiles << [name: apkFullName, path: dest]
                         } catch (err) {
-                            echo "===== 构建 Release APK 阶段失败 ====="
                             throw err
-                        } finally {
-                            echo "===== 构建 Release APK 阶段结束 ====="
                         }
                     }
                 }
@@ -187,46 +162,16 @@ pipeline {
             steps {
                 script {
                     dir(env.ANDROID_PROJECT_PATH) {
-                        def apkName = "${env.JOB_BASE_NAME}_${env.VERSION_CODE}_Debug_${env.CURRENT_TIME}"
+                        def apkName = "${JOB_BASE_NAME}_${VERSION_CODE}_Debug_${CURRENT_TIME}"
                         def apkFullName = "${apkName}.apk"
-                        def source = "${env.ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\apk\\debug\\${apkFullName}"
-                        def dest = "${env.BUILD_OUTPUT_PATH}${apkName}_signed.apk"
-
+                        def source = "${ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\apk\\debug\\${apkFullName}"
+                        def dest = "${BUILD_OUTPUT_PATH}${apkFullName}"
                         try {
-                            // 1️⃣ 构建 Debug APK
-                            echo "===== 开始构建 Debug APK ====="
-                            bat "gradlew.bat assembleDebug -PcustomName=${apkName} -PversionCode=${env.VERSION_CODE} -PversionName=${env.VERSION_NAME} --stacktrace"
-
-                            // 构建完成后列出 debug 目录内容
-                            def debugDir = "${env.ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\apk\\debug"
-                            bat "echo ===== Debug 目录文件列表 ====="
-                            bat "dir /b \"${debugDir}\""
-
-                            // 校验 APK 是否存在
-                            bat """
-                                if not exist "${source}" (
-                                    echo ERROR: 源 Debug APK 文件不存在
-                                    exit /b 1
-                                )
-                            """
-                            echo "Source Debug APK: ${source}"
-                            echo "===== 构建完成 ====="
-
-                            // 2️⃣ 签名 Debug APK
-                            echo "===== 开始签名 Debug APK ====="
-                            bat "call \"${env.APKSIGNER}\" sign --ks \"${env.storeFilefile}\" --ks-pass pass:${env.storePassword} --key-pass pass:${env.keyPassword} --ks-key-alias ${env.keyAlias} --in \"${source}\" --out \"${source}\""
-                            echo "===== 签名完成 ====="
-
-                            // 3️⃣ 拷贝到输出目录
-                            bat "if not exist \"${env.BUILD_OUTPUT_PATH}\" mkdir \"${env.BUILD_OUTPUT_PATH}\""
+                            bat "gradlew.bat assembleDebug -PcustomName=${apkName} -PversionCode=${VERSION_CODE} -PversionName=${VERSION_NAME} --stacktrace"
                             bat "copy /y \"${source}\" \"${dest}\""
-                            echo "拷贝完成: ${dest}"
-
+                            generatedFiles << [name: apkFullName, path: dest]
                         } catch (err) {
-                            echo "===== 构建 Debug APK 阶段失败 ====="
                             throw err
-                        } finally {
-                            echo "===== 构建 Debug APK 阶段结束 ====="
                         }
                     }
                 }
@@ -237,46 +182,17 @@ pipeline {
             when { expression { BUILD_ANDROID_AAB == "true"} }
             steps {
                 script {
-                    dir("${env.ANDROID_PROJECT_PATH}") {
-                        def aabName = "${env.JOB_BASE_NAME}_${env.VERSION_CODE}__AAB_Release_${env.CURRENT_TIME}"
-                        def aabFullName = "${env.JOB_BASE_NAME}_${env.VERSION_CODE}__AAB_Release_${env.CURRENT_TIME}.aab"
-                        def source = "${env.ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\bundle\\release\\${aabName}-release.aab"
-                        def dest = "${env.BUILD_OUTPUT_PATH}${aabFullName}"
+                    dir("${ANDROID_PROJECT_PATH}") {
+                        def aabName = "${JOB_BASE_NAME}_${VERSION_CODE}__AAB_Release_${CURRENT_TIME}"
+                        def aabFullName = "${aabName}.aab"
+                        def source = "${ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\bundle\\release\\${aabName}-release.aab"
+                        def dest = "${BUILD_OUTPUT_PATH}${aabFullName}"
                         try {
-                            // 1️⃣ 构建 Release AAB
-                            echo "===== 开始构建 Release AAB ====="
-                            bat "gradlew.bat bundleRelease -PcustomName=${aabName} -PversionCode=${env.VERSION_CODE} -PversionName=${env.VERSION_NAME} --stacktrace"
-
-                            // 构建完成后列出 release 目录内容
-                            def releaseDir = "${env.ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\bundle\\release"
-                            bat "echo ===== Release AAB 目录文件列表 ====="
-                            bat "dir /b \"${releaseDir}\""
-
-                            // 校验 AAB 是否存在
-                            bat """
-                                if not exist "${source}" (
-                                    echo ERROR: 源 Release AAB 文件不存在
-                                    exit /b 1
-                                )
-                            """
-                            echo "Source Release AAB: ${source}"
-                            echo "===== 构建完成 ====="
-
-                            // 2️⃣ 签名 AAB（可选，通常不签名 AAB，这里按你的习惯保留）
-                            // echo "===== 开始签名 Release AAB ====="
-                            // bat "call \"${env.APKSIGNER}\" sign --ks \"${env.storeFilefile}\" --ks-pass pass:${env.storePassword} --key-pass pass:${env.keyPassword} --ks-key-alias ${env.keyAlias} --in \"${source}\" --out \"${source}\""
-                            // echo "===== 签名完成 ====="
-
-                            // 3️⃣ 拷贝到输出目录
-                            bat "if not exist \"${env.BUILD_OUTPUT_PATH}\" mkdir \"${env.BUILD_OUTPUT_PATH}\""
+                            bat "gradlew.bat bundleRelease -PcustomName=${aabName} -PversionCode=${VERSION_CODE} -PversionName=${VERSION_NAME} --stacktrace"
                             bat "copy /y \"${source}\" \"${dest}\""
-                            echo "拷贝完成: ${dest}"
-
+                            generatedFiles << [name: aabFullName, path: dest]
                         } catch (err) {
-                            echo "===== 构建 Release AAB 阶段失败 ====="
                             throw err
-                        } finally {
-                            echo "===== 构建 Release AAB 阶段结束 ====="
                         }
                     }
                 }
@@ -287,47 +203,17 @@ pipeline {
             when { expression { BUILD_ANDROID_AAB == "true" && ONLY_RELEASE == "false"} }
             steps {
                 script {
-                    dir("${env.ANDROID_PROJECT_PATH}") {
-                        def aabName = "${env.JOB_BASE_NAME}_${env.VERSION_CODE}__AAB_Debug_${env.CURRENT_TIME}"
-                        def aabFullName = "${env.JOB_BASE_NAME}_${env.VERSION_CODE}__AAB_Debug_${env.CURRENT_TIME}.aab"
-                        def source = "${env.ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\bundle\\debug\\${aabName}-debug.aab"
-                        def dest = "${env.BUILD_OUTPUT_PATH}${aabFullName}"
-
+                    dir("${ANDROID_PROJECT_PATH}") {
+                        def aabName = "${JOB_BASE_NAME}_${VERSION_CODE}__AAB_Debug_${CURRENT_TIME}"
+                        def aabFullName = "${aabName}.aab"
+                        def source = "${ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\bundle\\debug\\${aabName}-debug.aab"
+                        def dest = "${BUILD_OUTPUT_PATH}${aabFullName}"
                         try {
-                            // 1️⃣ 构建 Debug AAB
-                            echo "===== 开始构建 Debug AAB ====="
-                            bat "gradlew.bat bundleDebug -PcustomName=${aabName} -PversionCode=${env.VERSION_CODE} -PversionName=${env.VERSION_NAME} --stacktrace"
-
-                            // 构建完成后列出 debug 目录内容
-                            def debugDir = "${env.ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\bundle\\debug"
-                            bat "echo ===== Debug AAB 目录文件列表 ====="
-                            bat "dir /b \"${debugDir}\""
-
-                            // 校验 AAB 是否存在
-                            bat """
-                                if not exist "${source}" (
-                                    echo ERROR: 源 Debug AAB 文件不存在
-                                    exit /b 1
-                                )
-                            """
-                            echo "Source Debug AAB: ${source}"
-                            echo "===== 构建完成 ====="
-
-                            // 2️⃣ 签名 Debug AAB（通常不签名 AAB）
-                            // echo "===== 开始签名 Debug AAB ====="
-                            // bat "call \"${env.APKSIGNER}\" sign --ks \"${env.storeFilefile}\" --ks-pass pass:${env.storePassword} --key-pass pass:${env.keyPassword} --ks-key-alias ${env.keyAlias} --in \"${source}\" --out \"${source}\""
-                            // echo "===== 签名完成 ====="
-
-                            // 3️⃣ 拷贝到输出目录
-                            bat "if not exist \"${env.BUILD_OUTPUT_PATH}\" mkdir \"${env.BUILD_OUTPUT_PATH}\""
+                            bat "gradlew.bat bundleDebug -PcustomName=${aabName} -PversionCode=${VERSION_CODE} -PversionName=${VERSION_NAME} --stacktrace"
                             bat "copy /y \"${source}\" \"${dest}\""
-                            echo "拷贝完成: ${dest}"
-
+                            generatedFiles << [name: aabFullName, path: dest]
                         } catch (err) {
-                            echo "===== 构建 Debug AAB 阶段失败 ====="
                             throw err
-                        } finally {
-                            echo "===== 构建 Debug AAB 阶段结束 ====="
                         }
                     }
                 }
@@ -335,4 +221,156 @@ pipeline {
         }
 
     }
+
+    // 安全转换 Long
+    def safeLong(value, defaultValue=0L) {
+        try {
+            if (value != null) {
+                return value.toString().trim().toLong()
+            }
+        } catch (err) {
+            echo "转换 Long 失败: ${err}, 使用默认值 ${defaultValue}"
+        }
+        return defaultValue
+    }
+
+    post {
+        success {
+            script {
+                // 安全转换 Long
+                def startTime = env.BUILD_START_TIME.toLong()
+                def duration = (System.currentTimeMillis() - startTime) / 1000
+                echo "构建耗时: ${duration}s"
+
+                // 构建消息
+                def msg = "构建完成，总耗时：${duration}s\n\n可下载文件：\n"
+                if (generatedFiles != null && generatedFiles.size() > 0) {
+                    generatedFiles.each { f ->
+                        def fileName = f?.name ?: "unknown"
+                        def url = "http://192.168.18.62:8866/${fileName}"
+                        msg += "- [${fileName}](${url})\n"
+                    }
+                } else {
+                    msg += "- 无文件生成\n"
+                }
+
+                // 发送飞书消息
+                try {
+                    sendFeishuCardMsg("构建成功", msg, '', '', '', '', 2)
+                    echo "飞书消息发送成功"
+                } catch (err) {
+                    echo "飞书消息发送失败: ${err}"
+                }
+            }
+        }
+        failure {
+            script {
+                def startTime = env.BUILD_START_TIME.toLong()
+                def duration = (System.currentTimeMillis() - startTime) / 1000
+                echo "构建失败，总耗时: ${duration}s"
+
+                try {
+                    sendFeishuCardMsg("构建失败", "构建失败，总耗时：${duration}s", '', '', '', '', 3)
+                    echo "飞书消息发送成功"
+                } catch (err) {
+                    echo "飞书消息发送失败: ${err}"
+                }
+            }
+        }
+    }
+    }
+
+// 飞书消息函数（打印所有参数，带容错和日志）
+def sendFeishuCardMsg(headerName, message, url1='', url1Name='', url12='', url12Name='', messageType=2) {
+    echo "准备发送飞书消息"
+    echo "参数:"
+    echo "  headerName: ${headerName}"
+    echo "  message: ${message}"
+    echo "  url1: ${url1}"
+    echo "  url1Name: ${url1Name}"
+    echo "  url12: ${url12}"
+    echo "  url12Name: ${url12Name}"
+    echo "  messageType: ${messageType}"
+
+    try {
+        def template = "blue"
+        def btnType = "laser"
+        if (messageType == 2) template = "green"
+        else if (messageType == 3) { 
+            template = "red"
+            btnType = "danger" 
+        }
+
+        // 构造消息按钮
+        def elements = [
+            [
+                tag: "markdown",
+                content: message,
+                text_align: "left",
+                text_size: "normal_v2",
+                margin: "0px 0px 0px 0px"
+            ]
+        ]
+        if (url1 && url1Name) elements << [
+            tag: "button",
+            text: [tag:"plain_text", content:url1Name],
+            type: btnType,
+            width:"default",
+            size:"medium",
+            behaviors:[[type:"open_url", default_url:url1]]
+        ]
+        if (url12 && url12Name) elements << [
+            tag: "button",
+            text: [tag:"plain_text", content:url12Name],
+            type: btnType,
+            width:"default",
+            size:"medium",
+            behaviors:[[type:"open_url", default_url:url12]]
+        ]
+
+        def body = [
+            msg_type: "interactive",
+            card: [
+                schema: "2.0",
+                config: [update_multi:true],
+                header: [
+                    title:[tag:"plain_text", content:headerName],
+                    template: template
+                ],
+                body: [
+                    direction:"vertical",
+                    padding:"12px",
+                    elements: elements
+                ]
+            ]
+        ]
+
+        // 打印请求体
+        def jsonBody = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(body))
+        echo "飞书请求体:\n${jsonBody}"
+
+        // 发送 HTTP 请求
+        def response = httpRequest(
+            acceptType: 'APPLICATION_JSON',
+            contentType: 'APPLICATION_JSON',
+            httpMode: 'POST',
+            requestBody: groovy.json.JsonOutput.toJson(body),
+            url: FEISHU_WEBHOOK_URL,
+            validResponseCodes: '100:599',
+            consoleLogResponseBody: true
+        )
+
+        // 响应处理
+        echo "飞书响应状态码: ${response.status}"
+        echo "飞书响应内容: ${response.content}"
+        if (response.status >= 200 && response.status < 300) {
+            echo "飞书消息发送成功"
+        } else {
+            echo "飞书消息发送失败"
+        }
+
+    } catch (err) {
+        echo "发送飞书消息异常: ${err}"
+    }
 }
+
