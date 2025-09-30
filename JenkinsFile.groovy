@@ -1,5 +1,111 @@
 pipeline {
     agent any
+    parameters {
+        // ========================
+        // ✅ 持久化参数（用户可修改，且会保存上次输入）
+        // ========================
+        persistentString(
+            name: 'VERSION_NAME',
+            defaultValue: '1.0.0',
+            description: '应用版本号'
+        )
+        persistentString(
+            name: 'VERSION_CODE',
+            defaultValue: '100',
+            description: '应用版本号 Code'
+        )
+        persistentString(
+            name: 'UNITY_CUSTOME_PARAM',
+            defaultValue: '1',
+            description: '自定义参数，传递至 unity',
+            trim: false
+        )
+        persistentChoice(
+            name: 'SYNC_UNITY_GIT',
+            choices: ['true', 'false'],
+            description: '同步 Unity git'
+        )
+        persistentChoice(
+            name: 'BUILD_UNITY',
+            choices: ['true', 'false'],
+            description: 'Unity 是否导出'
+        )
+        persistentChoice(
+            name: 'SYNC_ANDROID_GIT',
+            choices: ['true', 'false'],
+            description: '同步 Android git'
+        )
+        persistentChoice(
+            name: 'CLEAN_ANDROID_CACHED',
+            choices: ['true', 'false'],
+            description: '是否构建清除Android 缓存，清除之后构建会变慢'
+        )
+        persistentChoice(
+            name: 'BUILD_ANDROID_APK',
+            choices: ['true', 'false'],
+            description: '是否构建apk'
+        )
+        persistentChoice(
+            name: 'BUILD_ANDROID_AAB',
+            choices: ['true', 'false'],
+            description: '是否构建aab'
+        )
+        persistentChoice(
+            name: 'BUILD_DEBUG',
+            choices: ['true', 'false'],
+            description: '是否构建附带debug包'
+        )
+
+        // ========================
+        // 🔒 隐藏参数（使用 hidden plugin 或 password/string）
+        // ========================
+        hidden(
+            name: 'storeFilefile',
+            defaultValue: 'C:\\AndroidKey\\heromarking.keystore',
+            description: '签名 storeFile file'
+        )
+        password(
+            name: 'storePassword',
+            defaultValue: 'heromarking20211028',
+            description: '签名 storePassword'
+        )
+        password(
+            name: 'keyAlias',
+            defaultValue: 'heromarking',
+            description: '签名 keyAlias'
+        )
+        password(
+            name: 'keyPassword',
+            defaultValue: 'heromarking20211028',
+            description: '签名 keyPassword'
+        )
+        hidden(
+            name: 'UNITY_EDITOR_PATH',
+            defaultValue: 'D:\\Unity\\Unity 2021.3.45f1\\Editor\\Unity.exe',
+            description: 'Unity 编辑器路径'
+        )
+        hidden(
+            name: 'UNITY_PROJECT_PATH',
+            defaultValue: 'D:\\MyGit\\AutoBuildUnity',
+            description: 'Unity 项目路径'
+        )
+        hidden(
+            name: 'ANDROID_PROJECT_PATH',
+            defaultValue: 'D:\\MyGit\\AutoBuildUnity_Build',
+            description: 'Android 项目路径'
+        )
+        hidden(
+            name: 'APKSIGNER',
+            defaultValue: 'D:\\SDK\\build-tools\\36.0.0\\apksigner.bat',
+            description: 'apksigner 工具路径'
+        )
+        hidden(
+            name: 'FEISHU_WEBHOOK_URL',
+            defaultValue: 'https://open.feishu.cn/open-apis/bot/v2/hook/3447cff8-3872-4dd8-acd5-6867159b781a',
+            description: '飞书 webhook 地址'
+        )
+    }
+
 
     environment {
         BUILD_OUTPUT_PATH = "C:\\IIS_ServerData\\${JOB_BASE_NAME}\\BuildOutput\\V${VERSION_CODE}\\"
@@ -158,7 +264,7 @@ pipeline {
         }
 
         stage('Build Debug APK') {
-            when { expression { BUILD_ANDROID_APK == "true" && ONLY_RELEASE == "false"} }
+            when { expression { BUILD_ANDROID_APK == "true" && BUILD_DEBUG == "true"} }
             steps {
                 script {
                     dir(env.ANDROID_PROJECT_PATH) {
@@ -202,7 +308,7 @@ pipeline {
         }
 
         stage('Build Debug AAB') {
-            when { expression { BUILD_ANDROID_AAB == "true" && ONLY_RELEASE == "false"} }
+            when { expression { BUILD_ANDROID_AAB == "true" && BUILD_DEBUG == "true"} }
             steps {
                 script {
                     dir("${ANDROID_PROJECT_PATH}") {
