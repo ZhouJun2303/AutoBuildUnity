@@ -4,7 +4,6 @@ pipeline {
     environment {
         BUILD_OUTPUT_PATH = "C:\\IIS_ServerData\\${JOB_BASE_NAME}\\BuildOutput\\V${VERSION_CODE}\\"
         UNITY_LOG_PATH = "C:\\IIS_ServerData\\${JOB_BASE_NAME}\\UnityLog\\V${VERSION_CODE}\\"
-        BUILD_START_TIME = "${System.currentTimeMillis()}"
     }
 
     stages {
@@ -145,10 +144,11 @@ pipeline {
                         def apkFullName = "${apkName}.apk"
                         def source = "${ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\apk\\release\\${apkFullName}"
                         def dest = "${BUILD_OUTPUT_PATH}${apkFullName}"
+                        def serverPath = "${JOB_BASE_NAME}\\BuildOutput\\V${VERSION_CODE}\\${apkFullName}"
                         try {
                             bat "gradlew.bat assembleRelease -PcustomName=${apkName} -PversionCode=${VERSION_CODE} -PversionName=${VERSION_NAME} --stacktrace"
                             bat "copy /y \"${source}\" \"${dest}\""
-                            generatedFiles << [name: apkFullName, path: dest]
+                            generatedFiles << [name: apkFullName, path: serverPath]
                         } catch (err) {
                             throw err
                         }
@@ -166,10 +166,11 @@ pipeline {
                         def apkFullName = "${apkName}.apk"
                         def source = "${ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\apk\\debug\\${apkFullName}"
                         def dest = "${BUILD_OUTPUT_PATH}${apkFullName}"
+                        def serverPath = "${JOB_BASE_NAME}\\BuildOutput\\V${VERSION_CODE}\\${apkFullName}"
                         try {
                             bat "gradlew.bat assembleDebug -PcustomName=${apkName} -PversionCode=${VERSION_CODE} -PversionName=${VERSION_NAME} --stacktrace"
                             bat "copy /y \"${source}\" \"${dest}\""
-                            generatedFiles << [name: apkFullName, path: dest]
+                            generatedFiles << [name: apkFullName, path: serverPath]
                         } catch (err) {
                             throw err
                         }
@@ -187,10 +188,11 @@ pipeline {
                         def aabFullName = "${aabName}.aab"
                         def source = "${ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\bundle\\release\\${aabName}-release.aab"
                         def dest = "${BUILD_OUTPUT_PATH}${aabFullName}"
+                        def serverPath = "${JOB_BASE_NAME}\\BuildOutput\\V${VERSION_CODE}\\${aabFullName}"
                         try {
                             bat "gradlew.bat bundleRelease -PcustomName=${aabName} -PversionCode=${VERSION_CODE} -PversionName=${VERSION_NAME} --stacktrace"
                             bat "copy /y \"${source}\" \"${dest}\""
-                            generatedFiles << [name: aabFullName, path: dest]
+                            generatedFiles << [name: aabFullName, path: serverPath]
                         } catch (err) {
                             throw err
                         }
@@ -208,10 +210,11 @@ pipeline {
                         def aabFullName = "${aabName}.aab"
                         def source = "${ANDROID_PROJECT_PATH}\\launcher\\build\\outputs\\bundle\\debug\\${aabName}-debug.aab"
                         def dest = "${BUILD_OUTPUT_PATH}${aabFullName}"
+                        def serverPath = "${JOB_BASE_NAME}\\BuildOutput\\V${VERSION_CODE}\\${aabFullName}"
                         try {
                             bat "gradlew.bat bundleDebug -PcustomName=${aabName} -PversionCode=${VERSION_CODE} -PversionName=${VERSION_NAME} --stacktrace"
                             bat "copy /y \"${source}\" \"${dest}\""
-                            generatedFiles << [name: aabFullName, path: dest]
+                            generatedFiles << [name: aabFullName, path: serverPath]
                         } catch (err) {
                             throw err
                         }
@@ -222,24 +225,11 @@ pipeline {
 
     }
 
-    // 安全转换 Long
-    def safeLong(value, defaultValue=0L) {
-        try {
-            if (value != null) {
-                return value.toString().trim().toLong()
-            }
-        } catch (err) {
-            echo "转换 Long 失败: ${err}, 使用默认值 ${defaultValue}"
-        }
-        return defaultValue
-    }
-
     post {
         success {
             script {
-                // 安全转换 Long
-                def startTime = env.BUILD_START_TIME.toLong()
-                def duration = (System.currentTimeMillis() - startTime) / 1000
+                // Jenkins 自带 duration 是毫秒，转秒
+                def duration = (currentBuild.duration / 1000)
                 echo "构建耗时: ${duration}s"
 
                 // 构建消息
@@ -247,7 +237,8 @@ pipeline {
                 if (generatedFiles != null && generatedFiles.size() > 0) {
                     generatedFiles.each { f ->
                         def fileName = f?.name ?: "unknown"
-                        def url = "http://192.168.18.62:8866/${fileName}"
+                        def filePath = f?.path ?: "unknown"
+                        def url = "http://192.168.18.62:8866/${filePath}"
                         msg += "- [${fileName}](${url})\n"
                     }
                 } else {
@@ -265,8 +256,7 @@ pipeline {
         }
         failure {
             script {
-                def startTime = env.BUILD_START_TIME.toLong()
-                def duration = (System.currentTimeMillis() - startTime) / 1000
+                def duration = (currentBuild.duration / 1000)
                 echo "构建失败，总耗时: ${duration}s"
 
                 try {
@@ -278,7 +268,7 @@ pipeline {
             }
         }
     }
-    }
+}
 
 // 飞书消息函数（打印所有参数，带容错和日志）
 def sendFeishuCardMsg(headerName, message, url1='', url1Name='', url12='', url12Name='', messageType=2) {
