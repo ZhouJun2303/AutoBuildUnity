@@ -106,10 +106,11 @@ pipeline {
         )
     }
 
-
     environment {
         BUILD_OUTPUT_PATH = "C:\\IIS_ServerData\\${JOB_BASE_NAME}\\BuildOutput\\V${VERSION_CODE}\\"
         UNITY_LOG_PATH = "C:\\IIS_ServerData\\${JOB_BASE_NAME}\\UnityLog\\V${VERSION_CODE}\\"
+        JENKINS_SERVER = "http://192.168.18.62:8867/"
+        IIS_SERVER = "http://192.168.18.62:8866/"
     }
 
     stages {
@@ -117,7 +118,27 @@ pipeline {
             steps {
                 script {
                     generatedFiles = []
-                    sendFeishuCardMsg("构建开始", "项目: ${JOB_BASE_NAME}\n版本: ${VERSION_CODE}", '', '', '', '', 2)
+
+                    // 获取所有持久化参数
+                    def visibleParams = [
+                        'VERSION_NAME', 'VERSION_CODE', 'UNITY_CUSTOME_PARAM',
+                        'SYNC_UNITY_GIT', 'BUILD_UNITY', 'SYNC_ANDROID_GIT',
+                        'CLEAN_ANDROID_CACHED', 'BUILD_ANDROID_APK', 'BUILD_ANDROID_AAB',
+                        'BUILD_DEBUG'
+                    ]
+
+                    // 构建参数消息
+                    def paramMsg = visibleParams.collect { paramName ->
+                        "${paramName}: ${params[paramName]}"
+                    }.join("\n")
+
+                    // 打印到控制台
+                    echo "构建开始，参数如下:\n${paramMsg}"
+
+                    // 发送飞书消息
+                    def feishuMsg = "构建开始\n项目: ${JOB_BASE_NAME}\n参数:\n${paramMsg}\n"
+                    feishuMsg += "Jenkins 地址：${JENKINS_SERVER}job/${JOB_NAME}/\n"
+                    sendFeishuCardMsg("构建开始", feishuMsg, '', '', '', '', 2)
                 }
             }
         }
@@ -339,12 +360,15 @@ pipeline {
                 echo "构建耗时: ${duration}s"
 
                 // 构建消息
-                def msg = "构建完成，总耗时：${duration}s\n\n可下载文件：\n"
+                def msg = "构建完成，总耗时：${duration}s\n"
+                msg+="项目: ${JOB_BASE_NAME}\n"
+                msg+= "IIS 服务器：${IIS_SERVER}${JOB_BASE_NAME}\n\n"
+                msg+= "可下载文件：\n"
                 if (generatedFiles != null && generatedFiles.size() > 0) {
                     generatedFiles.each { f ->
                         def fileName = f?.name ?: "unknown"
                         def filePath = f?.path ?: "unknown"
-                        def url = "http://192.168.18.62:8866/${filePath}"
+                        def url = "${IIS_SERVER}${filePath}"
                         msg += "- [${fileName}](${url})\n"
                     }
                 } else {
@@ -365,8 +389,14 @@ pipeline {
                 def duration = (currentBuild.duration / 1000)
                 echo "构建失败，总耗时: ${duration}s"
 
+                // 构建消息
+                def msg = "构建失败，总耗时：${duration}s\n\n"
+                msg+="项目: ${JOB_BASE_NAME}\n"
+                msg += "Jenkins 地址：${JENKINS_SERVER}job/${JOB_NAME}/\n"
+                msg += "IIS 服务器：${IIS_SERVER}${JOB_BASE_NAME}\n"
+
                 try {
-                    sendFeishuCardMsg("构建失败", "构建失败，总耗时：${duration}s", '', '', '', '', 3)
+                    sendFeishuCardMsg("构建失败", msg, '', '', '', '', 3)
                     echo "飞书消息发送成功"
                 } catch (err) {
                     echo "飞书消息发送失败: ${err}"
