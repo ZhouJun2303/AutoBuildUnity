@@ -188,21 +188,21 @@ pipeline {
         stage('Unity Git Sync') {
             when { expression { SYNC_UNITY_GIT == "true" } }
             steps {
-                script {
-                    dir("${env.UNITY_PROJECT_PATH}") {
-                        bat """
-                            if exist .git (
-                                echo ===== Unity Git Sync =====
-                                git config --global --add safe.directory %UNITY_PROJECT_PATH%
-                                git checkout -- .
-                                git pull
-                            ) else (
-                                echo [警告] %UNITY_PROJECT_PATH% 不是 Git 仓库，跳过同步
-                            )
+                        script {
+                            dir("${env.UNITY_PROJECT_PATH}") {
+                                bat """
+                                    if exist .git (
+                                        echo ===== Unity Git Sync =====
+                                        git config --global --add safe.directory %UNITY_PROJECT_PATH%
+                                        git checkout -- .
+                                        git pull
+                                    ) else (
+                                        echo [警告] %UNITY_PROJECT_PATH% 不是 Git 仓库，跳过同步
+                                    )
                         """
-                    }
+                            }
+                        }
                 }
-            }
         }
 
         stage('Kill Unity') {
@@ -230,25 +230,24 @@ pipeline {
             }
         }
 
+
         stage('Android Git Sync') {
-            when { expression { SYNC_ANDROID_GIT == "true" } }
+            when { expression { params.SYNC_ANDROID_GIT == "true" } }
             steps {
-                script {
-                    dir("${env.ANDROID_PROJECT_PATH}") {
-                        bat """
-                            if exist .git (
-                                echo ===== Android Git Sync =====
-                                git config --global --add safe.directory %ANDROID_PROJECT_PATH%
-                                git checkout -- .
-                                git pull
-                            ) else (
-                                echo [警告] %ANDROID_PROJECT_PATH% 不是 Git 仓库，跳过同步
-                            )
-                        """
-                    }
+                powershell """
+                echo ===== Android Git Sync =====
+
+                # 检查是否是 git 仓库
+                if (Test-Path '${env.ANDROID_PROJECT_PATH}\\.git') {
+                    git -C '${env.ANDROID_PROJECT_PATH}' -c safe.directory='${env.ANDROID_PROJECT_PATH}' checkout -- .
+                    git -C '${env.ANDROID_PROJECT_PATH}' -c safe.directory='${env.ANDROID_PROJECT_PATH}' pull
+                } else {
+                    Write-Host "[警告] ${env.ANDROID_PROJECT_PATH} 不是 Git 仓库，跳过同步"
                 }
+                """
             }
         }
+
 
         stage('Clean Android Cache') {
             when { expression { CLEAN_ANDROID_CACHED == "true" } }
@@ -393,6 +392,7 @@ pipeline {
                 def msg = "构建失败，总耗时：${duration}s\n\n"
                 msg+="项目: ${JOB_BASE_NAME}\n"
                 msg += "Jenkins 地址：${JENKINS_SERVER}job/${JOB_NAME}/\n"
+                msg += "构建 console：${JENKINS_SERVER}job/${JOB_NAME}/${currentBuild.number}/console\n"
                 msg += "IIS 服务器：${IIS_SERVER}${JOB_BASE_NAME}\n"
 
                 try {
@@ -473,7 +473,7 @@ def sendFeishuCardMsg(headerName, message, url1='', url1Name='', url12='', url12
 
         // 打印请求体
         def jsonBody = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(body))
-        echo "飞书请求体:\n${jsonBody}"
+        // echo "飞书请求体:\n${jsonBody}"
 
         // 发送 HTTP 请求
         def response = httpRequest(
