@@ -230,21 +230,22 @@ pipeline {
             }
         }
 
-
         stage('Android Git Sync') {
-            when { expression { params.SYNC_ANDROID_GIT == "true" } }
+            when { expression { params.SYNC_ANDROID_GIT == 'true' } }
             steps {
-                powershell """
-                echo ===== Android Git Sync =====
+                script {
+                    def path = "${env.ANDROID_PROJECT_PATH}"
 
-                # 检查是否是 git 仓库
-                if (Test-Path '${env.ANDROID_PROJECT_PATH}\\.git') {
-                    git -C '${env.ANDROID_PROJECT_PATH}' -c safe.directory='${env.ANDROID_PROJECT_PATH}' checkout -- .
-                    git -C '${env.ANDROID_PROJECT_PATH}' -c safe.directory='${env.ANDROID_PROJECT_PATH}' pull
-                } else {
-                    Write-Host "[警告] ${env.ANDROID_PROJECT_PATH} 不是 Git 仓库，跳过同步"
+                    bat """
+                        echo ===== Android Git Sync =====
+
+                        git -c "safe.directory=${path}" -C "${path}" fetch --all --prune
+
+                        git -c "safe.directory=${path}" -C "${path}" reset --hard
+
+                        git -c "safe.directory=${path}" -C "${path}" pull
+                    """
                 }
-                """
             }
         }
 
