@@ -7,7 +7,6 @@ public class AOTGenericReferences : UnityEngine.MonoBehaviour
 	{
 		"BundleMaster.dll",
 		"MyTaskTest.dll",
-		"System.dll",
 		"UnityEngine.AndroidJNIModule.dll",
 		"UnityEngine.CoreModule.dll",
 		"mscorlib.dll",
@@ -21,6 +20,7 @@ public class AOTGenericReferences : UnityEngine.MonoBehaviour
 	// ET.ETAsyncTaskMethodBuilder<object>
 	// ET.ETTask<object>
 	// System.Action<object,int,byte,byte>
+	// System.Action<object,object>
 	// System.Action<object>
 	// System.Collections.Generic.ArraySortHelper<object>
 	// System.Collections.Generic.Comparer<object>
@@ -65,7 +65,6 @@ public class AOTGenericReferences : UnityEngine.MonoBehaviour
 	// System.Collections.Generic.KeyValuePair<object,byte>
 	// System.Collections.Generic.KeyValuePair<object,object>
 	// System.Collections.Generic.List.Enumerator<object>
-	// System.Collections.Generic.List.SynchronizedList<object>
 	// System.Collections.Generic.List<object>
 	// System.Collections.Generic.ObjectComparer<object>
 	// System.Collections.Generic.ObjectEqualityComparer<byte>
@@ -79,27 +78,17 @@ public class AOTGenericReferences : UnityEngine.MonoBehaviour
 	// System.Func<int>
 	// System.Func<object,System.Threading.Tasks.VoidTaskResult>
 	// System.Func<object,object,object>
-	// System.Func<object,object>
 	// System.Func<object>
 	// System.IEquatable<Long2>
 	// System.Predicate<object>
 	// System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Threading.Tasks.VoidTaskResult>
 	// System.Runtime.CompilerServices.ConfiguredTaskAwaitable.ConfiguredTaskAwaiter<System.Threading.Tasks.VoidTaskResult>
-	// System.Runtime.CompilerServices.ConfiguredTaskAwaitable.ConfiguredTaskAwaiter<object>
 	// System.Runtime.CompilerServices.ConfiguredTaskAwaitable<System.Threading.Tasks.VoidTaskResult>
-	// System.Runtime.CompilerServices.ConfiguredTaskAwaitable<object>
 	// System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Tasks.VoidTaskResult>
-	// System.Runtime.CompilerServices.TaskAwaiter<object>
-	// System.Threading.Tasks.Task.<>c<System.Threading.Tasks.VoidTaskResult>
-	// System.Threading.Tasks.Task.<>c<object>
+	// System.Threading.Tasks.ContinuationTaskFromResultTask<System.Threading.Tasks.VoidTaskResult>
 	// System.Threading.Tasks.Task<System.Threading.Tasks.VoidTaskResult>
-	// System.Threading.Tasks.Task<object>
 	// System.Threading.Tasks.TaskFactory.<>c__DisplayClass35_0<System.Threading.Tasks.VoidTaskResult>
-	// System.Threading.Tasks.TaskFactory.<>c__DisplayClass35_0<object>
-	// System.Threading.Tasks.TaskFactory.<>c__DisplayClass35_1<System.Threading.Tasks.VoidTaskResult>
-	// System.Threading.Tasks.TaskFactory.<>c__DisplayClass35_1<object>
 	// System.Threading.Tasks.TaskFactory<System.Threading.Tasks.VoidTaskResult>
-	// System.Threading.Tasks.TaskFactory<object>
 	// }}
 
 	public void RefMethods()
