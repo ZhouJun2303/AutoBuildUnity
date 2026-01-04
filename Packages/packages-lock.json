@@ -1,11 +1,54 @@
 {
   "dependencies": {
+    "com.boxqkrtm.ide.cursor": {
+      "version": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.9"
+      },
+      "hash": "53e1baac3cde90c46934f82ee1d61802d2bd6651"
+    },
     "com.code-philosophy.hybridclr": {
       "version": "https://gitee.com/focus-creative-games/hybridclr_unity.git",
       "depth": 0,
       "source": "git",
       "dependencies": {},
       "hash": "64a6d26fa33466c864de9cb0ed90481873cd6250"
+    },
+    "com.nebukam.common": {
+      "version": "https://github.com/Nebukam/com.nebukam.common.git#0.1.7",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.collections": "1.3.1",
+        "com.unity.mathematics": "1.3.1",
+        "com.unity.burst": "1.8.17"
+      },
+      "hash": "c5ce22576a67c5f50b60709a216cd9e85aa73040"
+    },
+    "com.nebukam.job-assist": {
+      "version": "https://github.com/Nebukam/com.nebukam.job-assist.git#1.1.6",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.burst": "1.8.17",
+        "com.unity.jobs": "0.70.0-preview.7",
+        "com.unity.collections": "1.3.1"
+      },
+      "hash": "dd8820f9b746295f3ef707fa59b550f7d3992962"
+    },
+    "com.nebukam.orca": {
+      "version": "https://github.com/Nebukam/com.nebukam.orca.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.burst": "1.8.17",
+        "com.unity.collections": "1.3.1",
+        "com.unity.jobs": "0.70.0-preview.7",
+        "com.unity.mathematics": "1.3.1"
+      },
+      "hash": "703ec434f4a5a56863991c8954015c3a3150ec37"
     },
     "com.unity.addressables": {
       "version": "1.19.19",
@@ -21,11 +64,32 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.burst": {
+      "version": "1.8.21",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.mathematics": "1.2.1",
+        "com.unity.modules.jsonserialize": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.collab-proxy": {
       "version": "2.5.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.collections": {
+      "version": "1.4.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.burst": "1.6.6",
+        "com.unity.test-framework": "1.1.31",
+        "com.unity.nuget.mono-cecil": "1.11.4"
+      },
       "url": "https://packages.unity.com"
     },
     "com.unity.ext.nunit": {
@@ -60,8 +124,31 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
+    "com.unity.jobs": {
+      "version": "0.70.0-preview.7",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.collections": "1.4.0"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.mathematics": {
+      "version": "1.3.1",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.nuget.mono-cecil": {
+      "version": "1.11.4",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.scriptablebuildpipeline": {
-      "version": "1.20.1",
+      "version": "1.21.25",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -239,17 +326,6 @@
     "com.unity.modules.uielements": {
       "version": "1.0.0",
       "depth": 0,
-      "source": "builtin",
-      "dependencies": {
-        "com.unity.modules.ui": "1.0.0",
-        "com.unity.modules.imgui": "1.0.0",
-        "com.unity.modules.jsonserialize": "1.0.0",
-        "com.unity.modules.uielementsnative": "1.0.0"
-      }
-    },
-    "com.unity.modules.uielementsnative": {
-      "version": "1.0.0",
-      "depth": 1,
       "source": "builtin",
       "dependencies": {
         "com.unity.modules.ui": "1.0.0",
