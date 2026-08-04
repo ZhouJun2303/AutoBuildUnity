@@ -1,18 +1,12 @@
-using BM;
 using ET;
+using Game.AssetCore;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.SceneManagement;
-
 
 public class GameProduceStartGame : GameProduceBase<GameProcedureState>
 {
     public GameProduceStartGame(FSM<GameProcedureState> fsm, GameProcedureState state) : base(fsm, state)
     {
-
-
     }
 
     public override void OnProcedureEnter()
@@ -23,31 +17,14 @@ public class GameProduceStartGame : GameProduceBase<GameProcedureState>
 
     private async ETTask Init()
     {
-        AssetComponentConfig.DefaultBundlePackageName = "AllBundle";
-        await AssetComponent.Initialize(AssetComponentConfig.DefaultBundlePackageName);
-        LoadScene();
-    }
+        bool initialized = await AssetService.InitializePackageAsync();
+        if (!initialized)
+            throw new InvalidOperationException(
+                $"[{AssetService.Backend}] 默认资源包初始化失败: {AssetService.Options.DefaultPackageName}");
 
-    private void LoadScene()
-    {
-        string SceneResPath = "Assets/Scenes_HotFix/ToolScene.unity";
-        LoadSceneAsync(SceneResPath, LoadSceneMode.Additive, () =>  //SceneCtrl需要场景中有Root节点才能使用，加载初始场景用单独新加的接口
-        {
-        });
-        void LoadSceneAsync(string sceneName, LoadSceneMode mode, Action completed)
-        {
-            Inner().Coroutine();
-            async ETTask Inner()
-            {
-                LoadSceneHandler loadSceneHandler = await AssetComponent.LoadSceneAsync(sceneName);
-                AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(sceneName, mode);
-                asyncOperation.completed += (AsyncOperation obj) =>
-                {
-                    if (null != completed)
-                        completed();
-                };
-            }
-        }
+        ISceneHandle scene = await AssetService.LoadSceneAsync("Assets/Scenes_HotFix/ToolScene.unity", null,
+            LoadSceneMode.Additive);
+        if (scene == null || !scene.Succeeded)
+            throw new InvalidOperationException(scene?.Error ?? "启动场景加载失败");
     }
-
 }

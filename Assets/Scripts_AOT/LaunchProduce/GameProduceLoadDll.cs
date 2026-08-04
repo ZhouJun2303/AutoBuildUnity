@@ -1,13 +1,11 @@
-using BM;
 using ET;
+using Game.AssetCore;
 using HybridCLR;
 using Scripts_AOT.Utility;
 using System;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.Networking;
 
 public class GameProduceLoadDll : GameProduceBase<GameProcedureState>
 {
@@ -23,11 +21,21 @@ public class GameProduceLoadDll : GameProduceBase<GameProcedureState>
 
     private async ETTask LoadDll()
     {
-        await AssetComponent.Initialize("DllBundle");
+        if (AssetService.Backend == AssetBackendType.Resources)
+        {
+            Debug.LogWarning($"{stateID}: Resources 后端不加载热更 DLL，跳过 LoadDll");
+            dependenceFsm.SetState(GameProcedureState.StartGame);
+            return;
+        }
+
+        bool initialized = await AssetService.InitializePackageAsync("DllBundle");
+        if (!initialized)
+            throw new InvalidOperationException($"{stateID}: DllBundle 初始化失败");
         await LoadAotMetadata();
         await LoadHotDll();
         dependenceFsm.SetState(GameProcedureState.StartGame);
     }
+
     private async ETTask LoadAotMetadata()
     {
         foreach (var aotDllName in MetadataConfig.AotAssemblyMetadatas)
@@ -35,19 +43,17 @@ public class GameProduceLoadDll : GameProduceBase<GameProcedureState>
             string finalName = MetadataConfig.GetStripMetadataName(aotDllName);
             string path = Path.Combine("Assets/HotDll/AOTAssemblyMetadataDlls", finalName + ".bytes");
             LogHelper.Log("LoadAotMetadata：" + path);
-            var asset = await AssetComponent.LoadAsync<TextAsset>(path, "DllBundle");
+            var asset = await AssetService.LoadAsync<TextAsset>(path, "DllBundle");
             if (asset == null)
-            {
-                Debug.LogError($"{stateID}: cannot find AOTdll path: {path}");
-                continue;
-            }
+                throw new FileNotFoundException($"{stateID}: cannot find AOT dll", path);
+
             byte[] dllBytes = asset.bytes;
-            // 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
             var err = HybridCLR.RuntimeApi.LoadMetadataForAOTAssembly(dllBytes, HybridCLR.HomologousImageMode.Consistent);
             if (err == HybridCLR.LoadImageErrorCode.OK)
                 Debug.Log($"{stateID}: LoadMetadataForAOTAssembly:{aotDllName}. ret:{err}");
             else
-                Debug.LogError($"{stateID}: LoadMetadataForAOTAssembly:{aotDllName}. ret:{err}");
+                throw new InvalidOperationException(
+                    $"{stateID}: LoadMetadataForAOTAssembly:{aotDllName}. ret:{err}");
         }
     }
 
@@ -56,12 +62,9 @@ public class GameProduceLoadDll : GameProduceBase<GameProcedureState>
         string LaunchDllFileName = "Game.dll.bytes";
         string launchDllPath = Path.Combine("Assets/HotDll/HotUpdateDlls", LaunchDllFileName);
         LogHelper.Log("launchDllPath：" + launchDllPath);
-        var dllBytes = await AssetComponent.LoadAsync<TextAsset>(launchDllPath, "DllBundle");
+        var dllBytes = await AssetService.LoadAsync<TextAsset>(launchDllPath, "DllBundle");
         if (dllBytes == null)
-        {
-            Debug.LogError("Error 加载热更dll失败：" + launchDllPath);
-            return;
-        }
+            throw new FileNotFoundException("加载热更 DLL 失败", launchDllPath);
 
 #if UNITY_EDITOR
 #else

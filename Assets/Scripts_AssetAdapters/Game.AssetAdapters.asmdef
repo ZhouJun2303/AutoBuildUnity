@@ -1,10 +1,13 @@
 {
-    "name": "BundleMaster",
-    "rootNamespace": "",
+    "name": "Game.AssetAdapters",
+    "rootNamespace": "Game.AssetAdapters",
     "references": [
+        "GUID:7f3e9c2a1b4d4e8f9a0c1d2e3f4a5b6c",
         "GUID:6d55b8ae9ef04906b74736f4f922e5bc",
-        "GUID:3bc86b810ed97834e8d5d8df82632a59",
-        "GUID:cf72940284cbbb5479c28a3e039c34f6"
+        "GUID:b98a4eaf01896f5418b13b9950aabd98",
+        "GUID:e34a5702dd353724aa315fb8011f08c3",
+        "GUID:9e24947de15b9834991c9d8411ea37cf",
+        "GUID:84651a3751eca9349aac36a66bba901b"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

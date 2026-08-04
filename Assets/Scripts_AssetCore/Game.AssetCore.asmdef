@@ -1,10 +1,8 @@
 {
-    "name": "BundleMaster",
-    "rootNamespace": "",
+    "name": "Game.AssetCore",
+    "rootNamespace": "Game.AssetCore",
     "references": [
-        "GUID:6d55b8ae9ef04906b74736f4f922e5bc",
-        "GUID:3bc86b810ed97834e8d5d8df82632a59",
-        "GUID:cf72940284cbbb5479c28a3e039c34f6"
+        "GUID:6d55b8ae9ef04906b74736f4f922e5bc"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

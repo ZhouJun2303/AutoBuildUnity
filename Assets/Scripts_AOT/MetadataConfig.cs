@@ -4,6 +4,7 @@ public class MetadataConfig
 {
     public static string[] AotAssemblyMetadatas = new string[] {
         "BundleMaster.dll",
+        "ETTask.dll",
         "MyTaskTest.dll",
         "System.dll",
         };

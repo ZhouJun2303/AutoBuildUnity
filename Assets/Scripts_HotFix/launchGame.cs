@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using MyTaskTest;
 using BM;
 using ET;
+using Game.AssetCore;
 
 public class launchGame : MonoBehaviour
 {
@@ -132,7 +133,7 @@ public class launchGame : MonoBehaviour
     private async ETTask LoadResTest()
     {
         Debug.Log("LoadResTest");
-        var res = await AssetComponent.LoadAsync<Sprite>(BPath.Assets_HotRes_egg__png);
+        var res = await AssetService.LoadAsync<Sprite>(BPath.Assets_HotRes_egg__png);
         Debug.Log(res);
         Transform t = transform.Find("TestImage");
         if (null != t)
