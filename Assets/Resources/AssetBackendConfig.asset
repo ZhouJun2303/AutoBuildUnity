@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Backend: 1
   DefaultPackageName: AllBundle
-  YooPlayMode: 0
+  YooPlayMode: 2
   YooEditorSimulateRoot: 

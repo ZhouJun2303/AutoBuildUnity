@@ -26,9 +26,10 @@ public enum BuildStepId
     BM_CopyToLocalServer = 360,
 
     // ---------- YooAsset ----------
+    // Clear 必须在 Build 之前；Build 已用 BundledCopyOption=ClearAndCopyAll 写入 StreamingAssets
+    Yoo_ClearStreamingAssets = 390,
     Yoo_BuildAllBundle = 400,
     Yoo_BuildDllBundle = 410,
-    Yoo_ClearStreamingAssets = 420,
     Yoo_CopyToStreamingAssets = 430,
     Yoo_CopyToLocalServer = 440,
 

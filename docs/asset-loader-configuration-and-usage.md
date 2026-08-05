@@ -50,7 +50,7 @@ Assets/Resources/AssetBackendConfig.asset
 5. 将启动场景 `Assets/Scenes_HotFix/ToolScene.unity` 加入普通资源包的 Scene 列表。
 6. 发布模式将 `AssetComponentConfig.AssetLoadMode` 设为 `Build` 并生成所有分包。
 
-Launch 按 **AB 后端分根** 请求远端（与 IIS 磁盘一一对应，端口 **8866**，废弃 9998）：
+Launch 按 **AB 后端分根** 请求远端（与 IIS 磁盘一一对应，端口 **8866**）：
 
 ```text
 RemotePath 例:

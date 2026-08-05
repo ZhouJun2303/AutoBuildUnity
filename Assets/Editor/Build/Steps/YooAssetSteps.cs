@@ -109,12 +109,17 @@ public static class YooAssetSteps
         Debug.Log($"[Yoo] 首包目录(已含 Catalog): {streamingPkg}");
     }
 
+    /// <summary>
+    /// 构建前可选清理。完整流水线默认不跑本步：
+    /// Build 的 BundledCopyOption=ClearAndCopyAll 会按 Package 清并重写首包；
+    /// 若在 Build 之后再清，会把刚拷进 StreamingAssets/yoo 的内容删光，后续校验必挂。
+    /// </summary>
     public static void ClearStreamingAssetsYoo()
     {
         string yooRoot = Path.Combine(BuildPaths.StreamingAssets, "yoo");
         if (Directory.Exists(yooRoot))
             FileOps.CreateOrClearDirectory(yooRoot);
-        Debug.Log("[Yoo] 已清理 StreamingAssets/yoo（下次构建会按 BundledCopyOption 重新写入）");
+        Debug.Log("[Yoo] 已清理 StreamingAssets/yoo（请随后执行构建以重新写入首包）");
         FileOps.RefreshAssets();
     }
 

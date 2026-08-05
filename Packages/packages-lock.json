@@ -14,7 +14,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "64a6d26fa33466c864de9cb0ed90481873cd6250"
+      "hash": "ca7f87b6a72f3739f99a5ad0c957c7aae0cbd922"
     },
     "com.nebukam.common": {
       "version": "https://github.com/Nebukam/com.nebukam.common.git#0.1.7",

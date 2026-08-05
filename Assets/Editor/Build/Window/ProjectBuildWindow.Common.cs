@@ -9,7 +9,7 @@ public partial class ProjectBuildWindow
         EditorGUILayout.LabelField("1. 版本与远端", EditorStyles.boldLabel);
         EditorGUILayout.BeginVertical("box");
 
-        EditorGUILayout.LabelField($"远端 HTTP 总根: {BuildPaths.RemoteBaseUrl}/ （已废弃 9998）");
+        EditorGUILayout.LabelField($"远端 HTTP 总根: {BuildPaths.RemoteBaseUrl}/");
         EditorGUILayout.LabelField("各 AB 使用不同子目录，请求地址与 IIS 磁盘一一对应：");
         EditorGUILayout.LabelField("  BundleMaster → /BundleMaster/");
         EditorGUILayout.LabelField("  YooAsset     → /YooAsset/");

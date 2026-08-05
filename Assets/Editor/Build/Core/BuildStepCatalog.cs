@@ -68,9 +68,9 @@ public static class BuildStepCatalog
         BuildStepId.HybridClr_StripAotMetadata,
         BuildStepId.HybridClr_CopyHotDllToAssets,
         BuildStepId.HybridClr_CopyAotMetadataToAssets,
+        // Build 自带 ClearAndCopyAll，勿在构建后再清 StreamingAssets/yoo
         BuildStepId.Yoo_BuildAllBundle,
         BuildStepId.Yoo_BuildDllBundle,
-        BuildStepId.Yoo_ClearStreamingAssets,
         BuildStepId.Yoo_CopyToStreamingAssets,
         BuildStepId.Yoo_CopyToLocalServer,
     };
@@ -115,9 +115,10 @@ public static class BuildStepCatalog
             case AssetBackendType.YooAsset:
                 return new List<BuildStepId>
                 {
+                    // 清理仅作可选前置；构建后切勿再跑 Clear
+                    BuildStepId.Yoo_ClearStreamingAssets,
                     BuildStepId.Yoo_BuildAllBundle,
                     BuildStepId.Yoo_BuildDllBundle,
-                    BuildStepId.Yoo_ClearStreamingAssets,
                     BuildStepId.Yoo_CopyToStreamingAssets,
                     BuildStepId.Yoo_CopyToLocalServer,
                 };
@@ -172,13 +173,14 @@ public static class BuildStepCatalog
             "C:\\IIS_ServerData\\BundleMaster\\{ver}\\AssetBundles 与 version.txt；URL: .../8866/BundleMaster/",
             BundleMasterSteps.CopyToLocalServer, AssetBackendType.BundleMaster);
 
+        Add(BuildStepId.Yoo_ClearStreamingAssets, "清理 StreamingAssets/yoo",
+            "仅作构建前可选清理；构建后勿执行（会删掉刚写入的首包）",
+            YooAssetSteps.ClearStreamingAssetsYoo, AssetBackendType.YooAsset);
         Add(BuildStepId.Yoo_BuildAllBundle, "Yoo 构建 AllBundle",
             "LegacyBuildPipeline + BundledCopyOption=ClearAndCopyAll（打 AB、拷 StreamingAssets、写 BuiltinCatalog）",
             YooAssetSteps.BuildAllBundlePackage, AssetBackendType.YooAsset);
         Add(BuildStepId.Yoo_BuildDllBundle, "Yoo 构建 DllBundle",
             "同上；需先 HybridCLR 拷贝 .bytes 进 Assets/HotDll", YooAssetSteps.BuildDllBundlePackage, AssetBackendType.YooAsset);
-        Add(BuildStepId.Yoo_ClearStreamingAssets, "清理 StreamingAssets/yoo",
-            "仅清理 yoo；下次构建会按 BundledCopyOption 重新写入", YooAssetSteps.ClearStreamingAssetsYoo, AssetBackendType.YooAsset);
         Add(BuildStepId.Yoo_CopyToStreamingAssets, "Yoo 校验 StreamingAssets 首包",
             "确认构建已写入 yoo/{Package} 且存在 BuiltinCatalog.bytes（不再手工拷贝/二次生成）",
             YooAssetSteps.CopyToStreamingAssets, AssetBackendType.YooAsset);

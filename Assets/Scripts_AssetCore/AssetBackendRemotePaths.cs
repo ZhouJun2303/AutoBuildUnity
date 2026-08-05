@@ -24,7 +24,7 @@ namespace Game.AssetCore
     /// </summary>
     public static class AssetBackendRemotePaths
     {
-        /// <summary>本机 IIS HTTP 根（不再使用 9998）。</summary>
+        /// <summary>本机 IIS HTTP 根。</summary>
         public const string RemoteBaseUrl = "http://192.168.18.62:8866";
 
         /// <summary>本机 IIS 物理根目录。</summary>

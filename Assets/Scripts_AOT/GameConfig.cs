@@ -13,7 +13,6 @@ public class GameConfig
     /// 当前后端的远端根 URL（含 AB 子目录，无末尾斜杠）。
     /// 默认 BundleMaster；Launch 启动时会按 AssetBackendConfig.Backend 调用 ApplyBackendRemote 覆盖。
     /// 例：http://192.168.18.62:8866/BundleMaster
-    /// 废弃旧端口 9998。
     /// </summary>
     public string RemotePath { get; private set; } = Game.AssetCore.AssetBackendRemotePaths.GetRemoteUrl(Game.AssetCore.AssetBackendType.BundleMaster);
 
