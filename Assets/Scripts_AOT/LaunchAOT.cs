@@ -19,6 +19,8 @@ public class LaunchAOT : MonoBehaviour
         ETTask.ExceptionHandler += AssetLogHelper.LogError;
 
         BackendConfig = AssetBackendConfig.LoadOrDefault();
+        // 请求地址与 IIS 按 AB 分根：.../8866/BundleMaster|YooAsset|Addressables
+        Config.ApplyBackendRemote(BackendConfig.Backend);
         AssetService.Bootstrap(AssetLoaderFactory.Create(BackendConfig.Backend), BackendConfig.ToRuntimeOptions());
     }
 

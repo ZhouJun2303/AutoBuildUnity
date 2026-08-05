@@ -9,8 +9,16 @@ using UnityEngine.Networking;
 
 public class GameConfig
 {
-    //服务器地址
-    public string RemotePath { get; private set; } = "http://192.168.18.62:9998";
+    /// <summary>
+    /// 当前后端的远端根 URL（含 AB 子目录，无末尾斜杠）。
+    /// 默认 BundleMaster；Launch 启动时会按 AssetBackendConfig.Backend 调用 ApplyBackendRemote 覆盖。
+    /// 例：http://192.168.18.62:8866/BundleMaster
+    /// 废弃旧端口 9998。
+    /// </summary>
+    public string RemotePath { get; private set; } = Game.AssetCore.AssetBackendRemotePaths.GetRemoteUrl(Game.AssetCore.AssetBackendType.BundleMaster);
+
+    /// <summary>IIS HTTP 总根，不含后端子目录。</summary>
+    public string RemoteBaseUrl { get; private set; } = Game.AssetCore.AssetBackendRemotePaths.RemoteBaseUrl;
     public string PersistentDataPath
     {
         get
@@ -54,6 +62,19 @@ public class GameConfig
         LogHelper.Log($"HotDllPath {HotDllPath}");
         LogHelper.Log($"HotMetaDataDllPath {HotMetaDataDllPath}");
         LogHelper.Log($"AssetHofixPath {AssetHofixPath}");
+        LogHelper.Log($"RemotePath(default) {RemotePath}");
+    }
+
+    /// <summary>
+    /// 按资源后端切换远端根路径，保证请求地址与 IIS 子目录一致。
+    /// BundleMaster → http://192.168.18.62:8866/BundleMaster
+    /// YooAsset     → http://192.168.18.62:8866/YooAsset
+    /// Addressables → http://192.168.18.62:8866/Addressables
+    /// </summary>
+    public void ApplyBackendRemote(Game.AssetCore.AssetBackendType backend)
+    {
+        RemotePath = Game.AssetCore.AssetBackendRemotePaths.GetRemoteUrl(backend);
+        LogHelper.Log($"[GameConfig] RemotePath => {RemotePath} (backend={backend})");
     }
 
     public int ServerVersion { get; private set; } = -1;

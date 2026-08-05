@@ -52,28 +52,48 @@ namespace Game.AssetAdapters
                 }
             }
 
-            // Host 模式：初始化后拉版本并加载清单，便于后续下载/加载
-            if (_options.YooPlayMode == YooPlayModeKind.Host)
-            {
-                var versionOp = package.RequestPackageVersionAsync();
-                await AwaitOp(versionOp);
-                if (versionOp.Status != EOperationStatus.Succeeded)
-                {
-                    Debug.LogError($"[YooAsset] RequestPackageVersion failed: {versionOp.Error}");
-                    return false;
-                }
-
-                var manifestOp = package.LoadPackageManifestAsync(
-                    new LoadPackageManifestOptions(versionOp.PackageVersion, 60));
-                await AwaitOp(manifestOp);
-                if (manifestOp.Status != EOperationStatus.Succeeded)
-                {
-                    Debug.LogError($"[YooAsset] LoadPackageManifest failed: {manifestOp.Error}");
-                    return false;
-                }
-            }
+            // YooAsset 3.x：Initialize 成功后仍没有 Active Manifest。
+            // Offline / Host / EditorSimulate 都需要：
+            //   RequestPackageVersion → LoadPackageManifest
+            // 否则加载资源会抛 YooPackageInvalidException: Active package manifest not found.
+            // （与官方 Sample SpaceShooter FsmRequestPackageVersion / FsmUpdatePackageManifest 一致）
+            if (!await LoadActiveManifestAsync(package, packageName))
+                return false;
 
             _initedPackages.Add(packageName);
+            return true;
+        }
+
+        /// <summary>
+        /// 请求版本并加载当前激活清单（所有 PlayMode 共用）。
+        /// Offline：从 StreamingAssets/yoo 读版本与清单；
+        /// Host：优先远端，失败逻辑由 Yoo 内部处理；
+        /// EditorSimulate：从模拟文件系统读。
+        /// </summary>
+        private async ETTask<bool> LoadActiveManifestAsync(ResourcePackage package, string packageName)
+        {
+            var versionOp = package.RequestPackageVersionAsync();
+            await AwaitOp(versionOp);
+            if (versionOp.Status != EOperationStatus.Succeeded)
+            {
+                Debug.LogError(
+                    $"[YooAsset] RequestPackageVersion failed: {packageName}, {versionOp.Error}\n" +
+                    "Offline 请确认 StreamingAssets/yoo/{Package} 下有 .version 与 BuiltinCatalog；" +
+                    "Host 请确认 BundleServerUrl 与远端版本文件可访问。");
+                return false;
+            }
+
+            var manifestOp = package.LoadPackageManifestAsync(
+                new LoadPackageManifestOptions(versionOp.PackageVersion, 60));
+            await AwaitOp(manifestOp);
+            if (manifestOp.Status != EOperationStatus.Succeeded)
+            {
+                Debug.LogError(
+                    $"[YooAsset] LoadPackageManifest failed: {packageName}, version={versionOp.PackageVersion}, {manifestOp.Error}");
+                return false;
+            }
+
+            Debug.Log($"[YooAsset] Package ready: {packageName}, version={versionOp.PackageVersion}, mode={_options.YooPlayMode}");
             return true;
         }
 

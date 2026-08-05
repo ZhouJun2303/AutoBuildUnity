@@ -16,7 +16,7 @@ public class BuildProjectWindows : EditorWindow
     private string _iosOutPath;
 
 
-    [MenuItem("打包/打包面板", false, 0)]
+    [MenuItem("打包/打包面板(导出路径)", false, 1)]
     public static void Init()
     {
         BuildProjectWindows window = (BuildProjectWindows)EditorWindow.GetWindow(typeof(BuildProjectWindows));
@@ -26,24 +26,28 @@ public class BuildProjectWindows : EditorWindow
 
     private void OnGUI()
     {
+        if (GUILayout.Button("打开完整构建面板（AB / HybridCLR / IIS）", GUILayout.Height(28)))
+        {
+            ProjectBuildWindow.Open();
+        }
+        EditorGUILayout.Space(6);
+
         GUIStyle style = new GUIStyle(EditorStyles.textArea);
         style.wordWrap = true;
         style.richText = true;
         _localSeletTopType = GUILayout.Toolbar(_localSeletTopType, _buttonNames);
+        EditorGUILayout.Space(6f);
 
-        _prebuildExportExcels = EditorGUI.Toggle(new Rect(10, 30, 100, 20), "打包前是否自动导出 Excel ", _prebuildExportExcels);
-        GUILayout.Space(30);
-        _afterBuildCopyRes = EditorGUI.Toggle(new Rect(10, 50, 100, 20), "打包之后自动拷贝资源 ", _afterBuildCopyRes);
-        GUILayout.Space(30);
+        _prebuildExportExcels = EditorGUILayout.ToggleLeft("打包前是否自动导出 Excel", _prebuildExportExcels);
+        _afterBuildCopyRes = EditorGUILayout.ToggleLeft("打包之后自动拷贝资源", _afterBuildCopyRes);
         if (_localSeletTopType == 0)
         {
-            _afterBuildCopyLibRes = EditorGUI.Toggle(new Rect(10, 70, 100, 20), "打包之后自动拷贝库文件 ", _afterBuildCopyLibRes);
-            GUILayout.Space(30);
-            _afterBuildCopyUnityDataAssetPack = EditorGUI.Toggle(new Rect(10, 90, 100, 20), "打包之后自动拷贝分包文件 ", _afterBuildCopyUnityDataAssetPack);
-            GUILayout.Space(30);
-            _shouldEnableSplitAPK = EditorGUI.Toggle(new Rect(10, 110, 100, 20), "是否分包 ", _shouldEnableSplitAPK);
-            GUILayout.Space(30);
+            _afterBuildCopyLibRes = EditorGUILayout.ToggleLeft("打包之后自动拷贝库文件", _afterBuildCopyLibRes);
+            _afterBuildCopyUnityDataAssetPack = EditorGUILayout.ToggleLeft("打包之后自动拷贝分包文件", _afterBuildCopyUnityDataAssetPack);
+            _shouldEnableSplitAPK = EditorGUILayout.ToggleLeft("是否分包", _shouldEnableSplitAPK);
         }
+
+        EditorGUILayout.Space(8f);
 
         EditorGUI.BeginDisabledGroup(_localSeletTopType == 1);
         _androidOutPath = EditorGUILayout.TextField("Android 导出路径 ", _androidOutPath, GUILayout.MinWidth(200));

@@ -42,12 +42,19 @@ public class GameProduceUpdateAssetBundle : GameProduceBase<GameProcedureState>
         if (AssetService.Backend == AssetBackendType.BundleMaster ||
             AssetService.Backend == AssetBackendType.YooAsset)
         {
+            // RemotePath 已在 LaunchAOT 中按后端设为：
+            //   http://192.168.18.62:8866/BundleMaster  或  .../YooAsset
+            // version.txt → {RemotePath}/version.txt
+            // 资源目录   → {RemotePath}/{ver}/AssetBundles  （磁盘 C:\IIS_ServerData\{Backend}\{ver}\AssetBundles）
             await LaunchAOT.Config.GetAllVersion();
             if (LaunchAOT.Config.ServerVersion < 0)
-                throw new InvalidOperationException("资源版本服务器不可用，无法检查热更新");
+                throw new InvalidOperationException(
+                    $"资源版本服务器不可用：{AssetBackendRemotePaths.GetVersionFileUrl(AssetService.Backend)}");
 
-            AssetService.Options.BundleServerUrl =
-                $"{LaunchAOT.Config.RemotePath.TrimEnd('/', '\\')}/{LaunchAOT.Config.ServerVersion}/AssetBundles";
+            AssetService.Options.BundleServerUrl = AssetBackendRemotePaths.GetBundleServerUrl(
+                AssetService.Backend,
+                LaunchAOT.Config.ServerVersion);
+            LogHelper.Log($"[{AssetService.Backend}] BundleServerUrl={AssetService.Options.BundleServerUrl}");
             _persistServerVersion = true;
         }
 

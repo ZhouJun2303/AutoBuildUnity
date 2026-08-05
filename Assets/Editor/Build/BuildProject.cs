@@ -173,46 +173,20 @@ public class BuildProject
     [MenuItem("打包/构建AB资源")]
     public static void BuildAssetBundle()
     {
-        //加载配置文件
-        BundleMasterRuntimeConfig BMRuntimeConfig = AssetDatabase.LoadAssetAtPath<BundleMasterRuntimeConfig>(BundleMasterWindow.RuntimeConfigPath);
-        if (BMRuntimeConfig == null)
-        {
-            if (EditorUtility.DisplayDialog("错误", $"缺少运行时BM配置文件:{BundleMasterWindow.RuntimeConfigPath}", "确认"))
-            {
-                Debug.Log("缺少运行时BM配置文件 取消了操作！");
-            }
-            return;
-        }
-        if (BMRuntimeConfig.AssetLoadMode != AssetLoadMode.Build)
-        {
-            if (EditorUtility.DisplayDialog("错误", $"打包需要设置为构建模式", "确认"))
-            {
-                Debug.Log("打包需要设置为构建模式 取消了操作！");
-            }
-            return;
-        }
-        BM.BuildAssets.BuildAllBundle();
-
+        BundleMasterSteps.BuildAllBundles();
         BackupBundleAsset();
     }
 
     [MenuItem("打包/BackupBundleAsset")]
     public static void BackupBundleAsset()
     {
-        int version = ResConfig.Instance.ResVersion;
-        string path = Path.Combine(GetProjectPath(), "ResLocalRecord", version.ToString(), "AssetBundles");
-        //BuildAssets.CopyFileToTargetFolder(path);
-        AssetLoadTable assetLoadTable = AssetDatabase.LoadAssetAtPath<AssetLoadTable>(BundleMasterWindow.AssetLoadTablePath);
-        FileHelper.CopyDir(assetLoadTable.BuildBundlePath, path);
+        BundleMasterSteps.BackupToResLocalRecord();
     }
 
     [MenuItem("打包/CopyAssetBundleToStreamingAssets")]
     public static void CopyAssetBundleToStreamingAssets()
     {
-        int version = ResConfig.Instance.ResVersion;
-        string path = Path.Combine(GetProjectPath(), "ResLocalRecord", version.ToString(), AssetComponentConfig.LocalBundlePath);
-        AssetLoadTable assetLoadTable = AssetDatabase.LoadAssetAtPath<AssetLoadTable>(BundleMasterWindow.AssetLoadTablePath);
-        FileHelper.CopyDir(assetLoadTable.BuildBundlePath, path);
+        BundleMasterSteps.CopyToStreamingAssets();
     }
 
     const string Hot_Update_Dlls = "HotUpdateDlls";
@@ -220,26 +194,14 @@ public class BuildProject
     [MenuItem("打包/删除AOT和热更dll文件夹")]
     public static void ClearDllsAndAOTMetadata()
     {
-        var targetPath = Path.Combine(Application.dataPath, "HotDll");
-        //目标路径
-        string targetHotUpdateDllsPath = Path.Combine(targetPath, Hot_Update_Dlls);
-        string targetAOTAssemblyMetadataDlls = Path.Combine(targetPath, AOT_Assembly_Metadata_Dlls);
-
-        if (Directory.Exists(targetHotUpdateDllsPath))
-        {
-            DeleteHelper.DeleteDir(targetHotUpdateDllsPath);
-        }
-
-        if (Directory.Exists(targetAOTAssemblyMetadataDlls))
-        {
-            DeleteHelper.DeleteDir(targetAOTAssemblyMetadataDlls);
-        }
+        // 委托新构建步骤（学习面板：打包/构建面板 → HybridCLR）
+        HybridClrSteps.ClearHotDllFolders();
     }
 
     [MenuItem("打包/生成热更桥接文件等")]
     public static void HybirdCLRGenerateAll()
     {
-        HybridCLR.Editor.Commands.PrebuildCommand.GenerateAll();
+        HybridClrSteps.GenerateAll();
     }
 
     [MenuItem("打包/编译热更dll")]
@@ -339,71 +301,26 @@ public class BuildProject
     [MenuItem("打包/补充元数据裁剪")]
     public static void MyAOTAssemblyMetadataStripper()
     {
-        var targetPath = Path.Combine(Application.dataPath, "HotDll");
-        HybridCLR.Editor.Commands.CompileDllCommand.CompileDll(EditorUserBuildSettings.activeBuildTarget);
-        AssetDatabase.Refresh();
-        //编译dll源文件夹
-        string hybridCLRDataPath = Application.dataPath + @"\..\HybridCLRData";
-#if UNITY_ANDROID
-        //源路径
-        string aotMetadataDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"AssembliesPostIl2CppStrip\Android"));  //AOT补充元数据
-        string hotUpdateDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"HotUpdateDlls\Android"));   //热更新DLL路径
-#elif UNITY_IOS
-        //源路径
-        string aotMetadataDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"AssembliesPostIl2CppStrip\iOS"));  //AOT补充元数据
-        string hotUpdateDllsPath = ConvertPath(Path.Combine(hybridCLRDataPath, @"HotUpdateDlls\iOS"));   //热更新DLL路径
-#endif
-        foreach (string name in MetadataConfig.AotAssemblyMetadatas)
-        {
-            string originDll = ConvertPath(Path.Combine(aotMetadataDllsPath, name));
-            Debug.Log($"fullpath {originDll}");
-            if (!File.Exists(originDll))
-            {
-                Debug.LogError("【警告】缺少补充元数据文件：" + name);
-                continue;
-            }
-            string targetDll = ConvertPath(Path.Combine(aotMetadataDllsPath, MetadataConfig.GetStripMetadataName(name)));
-            AOTAssemblyMetadataStripper.Strip(originDll, targetDll);
-        }
-
+        // 与构建面板 HybridCLR「AOT 元数据裁剪」同一实现（含 ManagedStripped 回退同步）
+        HybridClrSteps.StripAotMetadata();
     }
 
     [MenuItem("打包/生成版本文件")]
     public static void CreateVersionFile()
     {
-        int version = ResConfig.Instance.ResVersion;
+        BundleMasterSteps.WriteVersionFilesOnly();
+        // 兼容旧路径：ResLocalRecord/version.txt
         string path = Path.Combine(GetProjectPath(), "ResLocalRecord");
-        string versionPath = Path.Combine(path, "version.txt");
-
-        File.WriteAllText(versionPath, $"version={version}", Encoding.UTF8);
-
-        string versionServerPath = Path.Combine(Application.streamingAssetsPath, "version.txt");
-        if (File.Exists(versionServerPath))
-        {
-            File.Delete(versionServerPath);
-        }
-        FileUtil.CopyFileOrDirectory(versionPath, versionServerPath);
+        FileOps.WriteVersionFile(Path.Combine(path, "version.txt"), BuildParams.AssetVersion);
         Debug.Log("生成版本文件 完成！");
     }
 
     [MenuItem("打包/拷贝当前版本到本地服务器")]
     public static void CopyHotResToLocalServer()
     {
-        int version = ResConfig.Instance.ResVersion;
-        string srcPath = Path.Combine(GetProjectPath(), "ResLocalRecord", version.ToString());
-        string destPath = Path.Combine(GetProjectPath(), "ResLocalServer", version.ToString());
-        FileHelper.CopyDir(srcPath, destPath);
-
-        string path = Path.Combine(GetProjectPath(), "ResLocalRecord");
-        string versionPath = Path.Combine(path, "version.txt");
-        string versionServerPath = Path.Combine(GetProjectPath(), "ResLocalServer", "version.txt");
-        if (File.Exists(versionServerPath))
-        {
-            File.Delete(versionServerPath);
-        }
-        File.Copy(versionPath, versionServerPath);
-
-        Debug.Log("CopyHotResToLocalServer 完成！");
+        // IIS: C:\IIS_ServerData\BundleMaster\{ver}\AssetBundles
+        // URL: http://192.168.18.62:8866/BundleMaster/{ver}/AssetBundles
+        BundleMasterSteps.CopyToLocalServer();
     }
 
     [MenuItem("打包/Test/iOS 全拷贝测试")]

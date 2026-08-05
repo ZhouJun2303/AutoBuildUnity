@@ -50,13 +50,20 @@ Assets/Resources/AssetBackendConfig.asset
 5. 将启动场景 `Assets/Scenes_HotFix/ToolScene.unity` 加入普通资源包的 Scene 列表。
 6. 发布模式将 `AssetComponentConfig.AssetLoadMode` 设为 `Build` 并生成所有分包。
 
-Launch 使用以下远端根目录：
+Launch 按 **AB 后端分根** 请求远端（与 IIS 磁盘一一对应，端口 **8866**，废弃 9998）：
 
 ```text
-{GameConfig.RemotePath}/{ServerVersion}/AssetBundles
+RemotePath 例:
+  BundleMaster  → http://192.168.18.62:8866/BundleMaster
+  YooAsset      → http://192.168.18.62:8866/YooAsset
+  Addressables  → http://192.168.18.62:8866/Addressables
+
+version.txt     → {RemotePath}/version.txt
+资源根(BM/Yoo)  → {RemotePath}/{ServerVersion}/AssetBundles
+磁盘            → C:\IIS_ServerData\{Backend}\...
 ```
 
-该目录下应保持 BundleMaster 生成的 `AllBundle`、`DllBundle` 及版本/日志文件结构。`Develop` 和 `Local` 模式不会进入远端更新流程。
+`AssetBackendRemotePaths` / 构建面板「打包/构建面板」与运行时共用该约定。该目录下应保持 `AllBundle`、`DllBundle` 及版本/日志文件结构。`Develop` 和 `Local` 模式不会进入远端更新流程。
 
 ### 检查项
 
@@ -105,10 +112,12 @@ Assets/HotDll/HotUpdateDlls/Game.dll.bytes
 `Host`：
 
 - 内置文件放入 StreamingAssets，远端文件部署到 `BundleServerUrl` 对应目录。
-- 当前 Launch 会把 `BundleServerUrl` 设置为公共版本目录：
+- Launch 按后端设置 `RemotePath`（Yoo 为 `http://192.168.18.62:8866/YooAsset`），再拼：
 
 ```text
-{GameConfig.RemotePath}/{ServerVersion}/AssetBundles
+BundleServerUrl = {RemotePath}/{ServerVersion}/AssetBundles
+例: http://192.168.18.62:8866/YooAsset/4/AssetBundles
+磁盘: C:\IIS_ServerData\YooAsset\4\AssetBundles\{Package}\
 ```
 
 - 该 URL 下的文件名结构必须与 YooAsset Host 构建产物一致。

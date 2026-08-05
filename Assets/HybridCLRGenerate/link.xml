@@ -4,18 +4,23 @@
     <type fullname="IEnumeratorAwaitExtensions" preserve="all" />
     <type fullname="IEnumeratorAwaitExtensions/SimpleCoroutineAwaiter" preserve="all" />
   </assembly>
-  <assembly fullname="BundleMaster">
-    <type fullname="BM.AssetComponent" preserve="all" />
+  <assembly fullname="ETTask">
     <type fullname="ET.ETAsyncTaskMethodBuilder" preserve="all" />
     <type fullname="ET.ETTask" preserve="all" />
     <type fullname="ET.ETTask`1" preserve="all" />
+  </assembly>
+  <assembly fullname="Game.AssetCore">
+    <type fullname="Game.AssetCore.AssetService" preserve="all" />
   </assembly>
   <assembly fullname="MyTaskTest">
     <type fullname="MyTaskTest.MyAsyncTaskMethodBuilder" preserve="all" />
     <type fullname="MyTaskTest.MyTask" preserve="all" />
   </assembly>
   <assembly fullname="System">
+    <type fullname="System.CodeDom.Compiler.GeneratedCodeAttribute" preserve="all" />
     <type fullname="System.Collections.Generic.Queue`1" preserve="all" />
+    <type fullname="System.ComponentModel.EditorBrowsableAttribute" preserve="all" />
+    <type fullname="System.ComponentModel.EditorBrowsableState" preserve="all" />
     <type fullname="System.Text.RegularExpressions.Regex" preserve="all" />
     <type fullname="System.Text.RegularExpressions.RegexOptions" preserve="all" />
   </assembly>
@@ -111,7 +116,9 @@
     <type fullname="System.Runtime.CompilerServices.IAsyncStateMachine" preserve="all" />
     <type fullname="System.Runtime.CompilerServices.IteratorStateMachineAttribute" preserve="all" />
     <type fullname="System.Runtime.CompilerServices.RuntimeCompatibilityAttribute" preserve="all" />
+    <type fullname="System.Runtime.CompilerServices.RuntimeHelpers" preserve="all" />
     <type fullname="System.Runtime.CompilerServices.TaskAwaiter" preserve="all" />
+    <type fullname="System.RuntimeFieldHandle" preserve="all" />
     <type fullname="System.RuntimeTypeHandle" preserve="all" />
     <type fullname="System.Security.Cryptography.HashAlgorithm" preserve="all" />
     <type fullname="System.Security.Cryptography.MD5CryptoServiceProvider" preserve="all" />
