@@ -52,8 +52,14 @@ public static class BuildStepCatalog
         BuildStepId.BM_CopyToLocalServer,
     };
 
+    /// <summary>
+    /// 仅 AB+分发：日常热更迭代（改代码后重编 DLL → 打 AB → 分发）。
+    /// 不含 GenerateAll / AOT 裁剪（改桥接或 AOT 元数据时请用完整热更包）。
+    /// </summary>
     public static List<BuildStepId> BundleMasterOnlyAbAndDistribute = new List<BuildStepId>
     {
+        BuildStepId.HybridClr_CompileDll,
+        BuildStepId.HybridClr_CopyHotDllToAssets,
         BuildStepId.BM_CheckBuildMode,
         BuildStepId.BM_BuildAllBundles,
         BuildStepId.BM_CopyToStreamingAssets,
@@ -77,6 +83,8 @@ public static class BuildStepCatalog
 
     public static List<BuildStepId> YooAssetOnlyAbAndDistribute = new List<BuildStepId>
     {
+        BuildStepId.HybridClr_CompileDll,
+        BuildStepId.HybridClr_CopyHotDllToAssets,
         BuildStepId.Yoo_BuildAllBundle,
         BuildStepId.Yoo_BuildDllBundle,
         BuildStepId.Yoo_CopyToStreamingAssets,
@@ -91,6 +99,16 @@ public static class BuildStepCatalog
         BuildStepId.HybridClr_StripAotMetadata,
         BuildStepId.HybridClr_CopyHotDllToAssets,
         BuildStepId.HybridClr_CopyAotMetadataToAssets,
+        BuildStepId.AA_ClearCache,
+        BuildStepId.AA_BuildPlayerContent,
+        BuildStepId.AA_CopyToStreamingAssets,
+        BuildStepId.AA_CopyToLocalServer,
+    };
+
+    public static List<BuildStepId> AddressablesOnlyAbAndDistribute = new List<BuildStepId>
+    {
+        BuildStepId.HybridClr_CompileDll,
+        BuildStepId.HybridClr_CopyHotDllToAssets,
         BuildStepId.AA_ClearCache,
         BuildStepId.AA_BuildPlayerContent,
         BuildStepId.AA_CopyToStreamingAssets,

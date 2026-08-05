@@ -20,45 +20,37 @@ public partial class ProjectBuildWindow
         switch (backend)
         {
             case AssetBackendType.BundleMaster:
-                displaySteps = BuildStepCatalog.StepsForBackendTab(backend);
                 runSteps = preset == 0 ? BuildStepCatalog.BundleMasterFullHotUpdate
                     : preset == 1 ? BuildStepCatalog.BundleMasterOnlyAbAndDistribute
                     : null;
                 break;
             case AssetBackendType.YooAsset:
-                displaySteps = BuildStepCatalog.StepsForBackendTab(backend);
                 runSteps = preset == 0 ? BuildStepCatalog.YooAssetFullHotUpdate
                     : preset == 1 ? BuildStepCatalog.YooAssetOnlyAbAndDistribute
                     : null;
                 break;
             case AssetBackendType.Addressables:
-                displaySteps = BuildStepCatalog.StepsForBackendTab(backend);
                 runSteps = preset == 0 ? BuildStepCatalog.AddressablesFull
-                    : preset == 1 ? new List<BuildStepId>
-                    {
-                        BuildStepId.AA_ClearCache,
-                        BuildStepId.AA_BuildPlayerContent,
-                        BuildStepId.AA_CopyToStreamingAssets,
-                        BuildStepId.AA_CopyToLocalServer,
-                    }
+                    : preset == 1 ? BuildStepCatalog.AddressablesOnlyAbAndDistribute
                     : null;
                 break;
             default:
                 return;
         }
 
-        // 完整热更包展示 HybridCLR + 后端步骤
-        if (preset == 0 && runSteps != null)
-            displaySteps = runSteps;
-
         bool custom = preset == 2;
         if (custom)
         {
-            // 自定义：展示后端步骤 + 可选 HybridCLR
+            // 自定义：HybridCLR（含编译热更 DLL）+ 后端步骤，可勾选
             var all = new List<BuildStepId>();
             all.AddRange(BuildStepCatalog.HybridClrPrepare);
             all.AddRange(BuildStepCatalog.StepsForBackendTab(backend));
             displaySteps = all;
+        }
+        else
+        {
+            // 预设流水线：展示与执行一致（完整包 / 仅AB 均含编译热更 DLL）
+            displaySteps = runSteps;
         }
 
         DrawStepList(displaySteps, allowToggle: custom);
