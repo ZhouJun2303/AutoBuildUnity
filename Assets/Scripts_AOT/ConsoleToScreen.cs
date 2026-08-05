@@ -54,6 +54,12 @@ public class ConsoleToScreen : MonoBehaviour
     bool _autoScroll = true;
     bool _dirty;
 
+    // 整区拖拽滑动（移动端不能只依赖右侧滚动条）
+    bool _scrollPointerDown;
+    bool _scrollDragMoved;
+    Vector2 _scrollDragLastGui;
+    const float ScrollDragThreshold = 12f;
+
     string _toastText;
     float _toastUntil;
     int _highlightIndex = -1;
@@ -433,8 +439,10 @@ public class ConsoleToScreen : MonoBehaviour
         float blockPad = 6f * scale;
         float copyBtnW = CopyBtnWidth * scale;
         float copyBtnH = Mathf.Max(lineH, 40f * scale);
-        float textW = scrollView.width - 24f - copyBtnW - gap;
-        float contentW = scrollView.width - 24f;
+        // 右侧留出细指示条与复制按钮宽度
+        float indicatorW = 10f * scale;
+        float textW = scrollView.width - indicatorW - copyBtnW - gap;
+        float contentW = scrollView.width - indicatorW;
 
         // 每段高度 = 文本高度 + 段间距
         float contentH = 0f;
@@ -442,19 +450,34 @@ public class ConsoleToScreen : MonoBehaviour
             contentH += EstimateHeight(_entries[i].text, textW, lineH) + blockPad;
         contentH = Mathf.Max(contentH, scrollView.height);
 
+        // 内容比视口宽一点即可，竖向滚动条可关：整区拖动才是主交互
         Rect contentRect = new Rect(0, 0, contentW, contentH);
         float maxScrollY = Mathf.Max(0f, contentH - scrollView.height);
+
+        // 整区手指/鼠标拖拽滑动（必须在 BeginScrollView 之前处理）
+        HandleScrollAreaInput(scrollView, maxScrollY, scale);
 
         // 新日志且开启自动滚底：贴到底部
         if (_autoScroll && _dirty && Event.current.type == EventType.Layout)
             _scrollPosition.y = maxScrollY;
 
-        _scrollPosition = GUI.BeginScrollView(scrollView, _scrollPosition, contentRect, false, true);
+        _scrollPosition.y = Mathf.Clamp(_scrollPosition.y, 0f, maxScrollY);
+
+        // 不强制显示右侧滚动条；仍可用滚轮，主交互靠整区拖拽
+        _scrollPosition = GUI.BeginScrollView(
+            scrollView,
+            _scrollPosition,
+            contentRect,
+            GUIStyle.none,
+            GUIStyle.none);
 
         float y = 0f;
         float now = Time.realtimeSinceStartup;
         if (_highlightIndex >= 0 && now > _highlightUntil)
             _highlightIndex = -1;
+
+        // 本帧是否因拖动而禁止「复制」点击
+        bool blockCopyClick = _scrollDragMoved;
 
         for (int i = 0; i < _entries.Count; i++)
         {
@@ -475,7 +498,7 @@ public class ConsoleToScreen : MonoBehaviour
 
             // 每段右上角一个「复制」，复制整段内容
             Rect copyRect = new Rect(textW + gap * 0.5f, y + 2f * scale, copyBtnW, copyBtnH);
-            if (GUI.Button(copyRect, "复制", _copyBtnStyle))
+            if (GUI.Button(copyRect, "复制", _copyBtnStyle) && !blockCopyClick)
                 CopyLog(i);
 
             y += h + blockPad;
@@ -483,11 +506,20 @@ public class ConsoleToScreen : MonoBehaviour
 
         GUI.EndScrollView();
 
-        // 用户上滑离开底部时，暂停自动滚底，方便阅读历史
-        if (Event.current.type == EventType.MouseDrag || Event.current.type == EventType.ScrollWheel)
+        // 拖动手势结束后复位，避免一直挡住「复制」
+        if (Event.current.type == EventType.MouseUp || Event.current.type == EventType.Ignore)
+            _scrollDragMoved = false;
+
+        // 可选：右侧细滚动指示条（仅位置反馈，不必拖它）
+        if (maxScrollY > 1f)
         {
-            if (_scrollPosition.y < maxScrollY - 48f * scale)
-                _autoScroll = false;
+            float trackW = 6f * scale;
+            float trackX = scrollView.xMax - trackW - 2f * scale;
+            float trackH = scrollView.height;
+            float thumbH = Mathf.Max(28f * scale, trackH * (scrollView.height / contentH));
+            float thumbY = scrollView.y + (trackH - thumbH) * (_scrollPosition.y / maxScrollY);
+            GUI.DrawTexture(new Rect(trackX, scrollView.y, trackW, trackH), _rowBgAlt);
+            GUI.DrawTexture(new Rect(trackX, thumbY, trackW, thumbH), _buttonBgOn);
         }
 
         if (_dirty && Event.current.type == EventType.Repaint)
@@ -550,6 +582,78 @@ public class ConsoleToScreen : MonoBehaviour
         // 内容高度在下一帧 OnGUI 里算准后再贴底；这里标脏即可
         _dirty = true;
         _autoScroll = true;
+    }
+
+    /// <summary>
+    /// 在滚动视口任意位置拖拽即可滑动；滚轮同样支持。
+    /// 拖动超过阈值后抑制本手势的「复制」点击，避免误触。
+    /// </summary>
+    void HandleScrollAreaInput(Rect scrollView, float maxScrollY, float scale)
+    {
+        Event e = Event.current;
+        if (e == null)
+            return;
+
+        Vector2 mouse = e.mousePosition;
+        float threshold = ScrollDragThreshold * Mathf.Max(1f, scale);
+
+        switch (e.type)
+        {
+            case EventType.MouseDown:
+                if (e.button == 0 && scrollView.Contains(mouse))
+                {
+                    _scrollPointerDown = true;
+                    _scrollDragMoved = false;
+                    _scrollDragLastGui = mouse;
+                }
+                break;
+
+            case EventType.MouseDrag:
+                if (!_scrollPointerDown || e.button != 0)
+                    break;
+
+                Vector2 delta = mouse - _scrollDragLastGui;
+                if (!_scrollDragMoved && delta.sqrMagnitude >= threshold * threshold)
+                    _scrollDragMoved = true;
+
+                if (_scrollDragMoved)
+                {
+                    // 手指上滑（mouse.y 减小）→ 看更下方内容 → scrollPosition.y 增大
+                    // 故：scrollY -= delta.y（delta.y 为 GUI 坐标增量，向下为正）
+                    _scrollPosition.y = Mathf.Clamp(_scrollPosition.y - delta.y, 0f, maxScrollY);
+                    _scrollDragLastGui = mouse;
+
+                    if (_scrollPosition.y < maxScrollY - 48f * scale)
+                        _autoScroll = false;
+
+                    e.Use();
+                }
+                break;
+
+            case EventType.MouseUp:
+                if (e.button == 0 && _scrollPointerDown)
+                {
+                    // 拖过则吃掉 Up，降低按钮误点；阈值内抬起仍可点「复制」
+                    if (_scrollDragMoved)
+                        e.Use();
+                    _scrollPointerDown = false;
+                    // _scrollDragMoved 保留到本帧按钮判定后再清
+                }
+                break;
+
+            case EventType.ScrollWheel:
+                if (scrollView.Contains(mouse))
+                {
+                    _scrollPosition.y = Mathf.Clamp(
+                        _scrollPosition.y + e.delta.y * 24f * scale,
+                        0f,
+                        maxScrollY);
+                    if (_scrollPosition.y < maxScrollY - 48f * scale)
+                        _autoScroll = false;
+                    e.Use();
+                }
+                break;
+        }
     }
 
     float EstimateHeight(string text, float width, float lineH)
