@@ -37,13 +37,15 @@ public class launchGame : MonoBehaviour
         Button button3 = transform.Find("TestButton3").GetComponent<Button>();
         button3.onClick.AddListener(() =>
         {
-            jo?.Call("TestButton3");
+            // jo?.Call("TestButton3");
+
+            LoadResTest("Assets/HotRes/egg_3.png").Coroutine();
         });
         Test5();
 
         // StartCoroutine(Custom1Enumerator());
 
-        LoadResTest().Coroutine();
+        LoadResTest(BPath.Assets_HotRes_conveyer_belt__png).Coroutine();
     }
 
     IEnumerator Custom1Enumerator()
@@ -130,10 +132,10 @@ public class launchGame : MonoBehaviour
         Test4();
     }
 
-    private async ETTask LoadResTest()
+    private async ETTask LoadResTest(string path)
     {
         Debug.Log("LoadResTest");
-        var res = await AssetService.LoadAsync<Sprite>(BPath.Assets_HotRes_egg__png);
+        var res = await AssetService.LoadAsync<Sprite>(path);
         Debug.Log(res);
         Transform t = transform.Find("TestImage");
         if (null != t)
