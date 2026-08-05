@@ -38,22 +38,47 @@ public class GameProduceLoadDll : GameProduceBase<GameProcedureState>
 
     private async ETTask LoadAotMetadata()
     {
+        // SuperSet：允许补充元数据为 AOT 的超集，对裁剪版本轻微不一致更宽容。
+        // 仍建议 Strip 与当前 Player 同源生成；跨大版本混用仍可能失败。
+        const HomologousImageMode mode = HomologousImageMode.SuperSet;
+
         foreach (var aotDllName in MetadataConfig.AotAssemblyMetadatas)
         {
             string finalName = MetadataConfig.GetStripMetadataName(aotDllName);
             string path = Path.Combine("Assets/HotDll/AOTAssemblyMetadataDlls", finalName + ".bytes");
-            LogHelper.Log("LoadAotMetadata：" + path);
+            LogHelper.Log($"LoadAotMetadata：{path} mode={mode}");
             var asset = await AssetService.LoadAsync<TextAsset>(path, "DllBundle");
             if (asset == null)
                 throw new FileNotFoundException($"{stateID}: cannot find AOT dll", path);
 
             byte[] dllBytes = asset.bytes;
-            var err = HybridCLR.RuntimeApi.LoadMetadataForAOTAssembly(dllBytes, HybridCLR.HomologousImageMode.Consistent);
-            if (err == HybridCLR.LoadImageErrorCode.OK)
-                Debug.Log($"{stateID}: LoadMetadataForAOTAssembly:{aotDllName}. ret:{err}");
-            else
+            if (dllBytes == null || dllBytes.Length == 0)
                 throw new InvalidOperationException(
-                    $"{stateID}: LoadMetadataForAOTAssembly:{aotDllName}. ret:{err}");
+                    $"{stateID}: AOT metadata empty: {aotDllName}, path={path}");
+
+            try
+            {
+                var err = RuntimeApi.LoadMetadataForAOTAssembly(dllBytes, mode);
+                if (err == LoadImageErrorCode.OK)
+                {
+                    Debug.Log(
+                        $"{stateID}: LoadMetadataForAOTAssembly OK: {aotDllName}, " +
+                        $"bytes={dllBytes.Length}, mode={mode}");
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"{stateID}: LoadMetadataForAOTAssembly failed: {aotDllName}, " +
+                        $"ret={err}, bytes={dllBytes.Length}, mode={mode}, path={path}");
+                }
+            }
+            catch (Exception e) when (!(e is InvalidOperationException))
+            {
+                // Consistent/SuperSet 校验失败时 native 可能直接抛 ExecutionEngineException
+                throw new InvalidOperationException(
+                    $"{stateID}: LoadMetadataForAOTAssembly exception: {aotDllName}, " +
+                    $"bytes={dllBytes.Length}, mode={mode}, path={path}", e);
+            }
         }
     }
 

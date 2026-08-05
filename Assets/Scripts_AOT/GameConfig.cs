@@ -153,7 +153,16 @@ public class GameConfig
     private int ReadVersionByTxt(string content)
     {
         int version = -1;
-        int.TryParse(content.Split('=')[1].Trim(), out version);
+        if (string.IsNullOrWhiteSpace(content))
+            return version;
+
+        // 去掉 UTF-8 BOM / 空白，兼容 "version=4" 与多余换行
+        content = content.Trim().TrimStart('\uFEFF');
+        int eq = content.IndexOf('=');
+        if (eq < 0 || eq >= content.Length - 1)
+            return version;
+
+        int.TryParse(content.Substring(eq + 1).Trim(), out version);
         return version;
     }
 }

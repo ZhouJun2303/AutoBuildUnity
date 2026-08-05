@@ -74,7 +74,8 @@ public static class FileOps
     public static void WriteVersionFile(string filePath, string version)
     {
         EnsureDirectory(Path.GetDirectoryName(filePath));
-        File.WriteAllText(filePath, $"version={version}", Encoding.UTF8);
+        // 无 BOM：部分平台/解析对 UTF-8 BOM 不友好（Encoding.UTF8 默认带 BOM）。
+        File.WriteAllText(filePath, $"version={version}", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
         Debug.Log($"[FileOps] 写入版本文件: {filePath} => version={version}");
     }
 

@@ -42,7 +42,9 @@ namespace Game.AssetAdapters
 
             if (package.InitializeStatus != EOperationStatus.Succeeded)
             {
-                InitializePackageOptions initOptions = BuildInitOptions();
+                // Host 远端布局：{BundleServerUrl}/{Package}/{fileName}
+                // 与 YooAssetSteps.CopyToLocalServer 的 IIS 目录一致。
+                InitializePackageOptions initOptions = BuildInitOptions(packageName);
                 var op = package.InitializePackageAsync(initOptions);
                 await AwaitOp(op);
                 if (op.Status != EOperationStatus.Succeeded)
@@ -76,10 +78,11 @@ namespace Game.AssetAdapters
             await AwaitOp(versionOp);
             if (versionOp.Status != EOperationStatus.Succeeded)
             {
+                string remoteHint = _options.YooPlayMode == YooPlayModeKind.Host
+                    ? $"Host 期望: {_options.BundleServerUrl?.TrimEnd('/', '\\')}/{packageName}/{packageName}.version"
+                    : "Offline 请确认 StreamingAssets/yoo/{Package} 下有 .version 与 BuiltinCatalog";
                 Debug.LogError(
-                    $"[YooAsset] RequestPackageVersion failed: {packageName}, {versionOp.Error}\n" +
-                    "Offline 请确认 StreamingAssets/yoo/{Package} 下有 .version 与 BuiltinCatalog；" +
-                    "Host 请确认 BundleServerUrl 与远端版本文件可访问。");
+                    $"[YooAsset] RequestPackageVersion failed: {packageName}, {versionOp.Error}\n{remoteHint}");
                 return false;
             }
 
@@ -291,7 +294,7 @@ namespace Game.AssetAdapters
             });
         }
 
-        private InitializePackageOptions BuildInitOptions()
+        private InitializePackageOptions BuildInitOptions(string packageName)
         {
             switch (_options.YooPlayMode)
             {
@@ -313,7 +316,21 @@ namespace Game.AssetAdapters
                         BuiltinFileSystemParameters = FileSystemParameters.CreateDefaultBuiltinFileSystemParameters(),
                     };
                 case YooPlayModeKind.Host:
-                    _remoteService = new HostRemoteService(_options.BundleServerUrl);
+                    // 每个 Package 单独拼远端根：.../AssetBundles/{Package}/file
+                    // Yoo 的 IRemoteService 只收到 fileName（如 AllBundle.version），不含包路径。
+                    // 部署约定见 YooAssetSteps.CopyToLocalServer。
+                    if (string.IsNullOrWhiteSpace(_options.BundleServerUrl))
+                    {
+                        throw new InvalidOperationException(
+                            "[YooAsset] Host 模式需要 BundleServerUrl。" +
+                            "请确认 Launch 已读取远端 version.txt 并设置 " +
+                            "AssetService.Options.BundleServerUrl = {RemotePath}/{ver}/AssetBundles。");
+                    }
+
+                    _remoteService = new HostRemoteService(_options.BundleServerUrl, packageName);
+                    Debug.Log(
+                        $"[YooAsset] Host remote root: {_remoteService.PackageRoot} " +
+                        $"(BundleServerUrl={_options.BundleServerUrl}, package={packageName})");
                     return new HostPlayModeOptions
                     {
                         BuiltinFileSystemParameters = FileSystemParameters.CreateDefaultBuiltinFileSystemParameters(),
@@ -431,18 +448,31 @@ namespace Game.AssetAdapters
             return tcs;
         }
 
+        /// <summary>
+        /// Host 模式远端 URL。
+        /// BundleServerUrl 指向版本资源根（.../YooAsset/{ver}/AssetBundles），
+        /// 实际文件在 {Package}/ 子目录下，与 CopyToLocalServer 部署一致。
+        /// 例：.../AssetBundles/AllBundle/AllBundle.version
+        /// </summary>
         private sealed class HostRemoteService : IRemoteService
         {
-            private readonly string _host;
+            public string PackageRoot { get; }
 
-            public HostRemoteService(string host)
+            public HostRemoteService(string bundleServerUrl, string packageName)
             {
-                _host = host?.TrimEnd('/', '\\') ?? string.Empty;
+                string host = (bundleServerUrl ?? string.Empty).Trim().TrimEnd('/', '\\');
+                string pkg = (packageName ?? string.Empty).Trim().Trim('/', '\\');
+                if (string.IsNullOrEmpty(host))
+                    throw new ArgumentException("bundleServerUrl is empty", nameof(bundleServerUrl));
+                PackageRoot = string.IsNullOrEmpty(pkg) ? host : $"{host}/{pkg}";
             }
 
             public IReadOnlyList<string> GetRemoteUrls(string fileName)
             {
-                return new[] { $"{_host}/{fileName}", $"{_host}/{fileName}" };
+                // 主备同源；需要多 CDN 时可扩展列表。
+                string name = (fileName ?? string.Empty).TrimStart('/', '\\');
+                string url = $"{PackageRoot}/{name}";
+                return new[] { url, url };
             }
         }
 

@@ -117,10 +117,17 @@ Assets/HotDll/HotUpdateDlls/Game.dll.bytes
 ```text
 BundleServerUrl = {RemotePath}/{ServerVersion}/AssetBundles
 例: http://192.168.18.62:8866/YooAsset/4/AssetBundles
+
+实际请求（HostRemoteService 会再拼 Package 名）:
+  {BundleServerUrl}/{Package}/{fileName}
+  例: .../AssetBundles/AllBundle/AllBundle.version
+
 磁盘: C:\IIS_ServerData\YooAsset\4\AssetBundles\{Package}\
+  例: ...\AllBundle\AllBundle.version
 ```
 
 - 该 URL 下的文件名结构必须与 YooAsset Host 构建产物一致。
+- 若请求变成 `.../AssetBundles/AllBundle.version`（少了包名目录）会 404。
 - 初始化、版本请求、Manifest 或 Downloader 任一步失败都会终止 Launch。
 
 ### 构建检查项
@@ -271,6 +278,6 @@ if (update.NeedUpdate)
 | 场景加载失败 | BM/Yoo/Addressables 的场景收集配置，或 Resources Build Settings |
 | DLL 加载失败 | `DllBundle` 是否包含 `.bytes` 文件，地址是否完整 |
 | Addressables 无更新 | Remote Catalog、Content Update Build、Remote Load Path |
-| YooAsset Host 请求 404 | `BundleServerUrl` 与 Host 构建文件结构是否一致 |
+| YooAsset Host 请求 404 | 是否为 `.../AssetBundles/{Package}/xxx`；磁盘是否在 `IIS\YooAsset\{ver}\AssetBundles\{Package}\`；`version.txt` 与部署版本是否一致 |
 | Resources 路径错误 | 文件是否确实位于 `Assets/Resources` 下 |
 | 重复加载后资源提前失效 | 每次 Load 是否只执行了一次对应的 Unload，是否混用了 path 与 handle 释放 |

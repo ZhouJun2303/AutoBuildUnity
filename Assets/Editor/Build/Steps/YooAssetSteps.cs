@@ -18,7 +18,9 @@ using YooAsset.Editor;
 ///   构建输出：Bundles/{Platform}/{Package}/{version}/
 ///   首包内置：StreamingAssets/yoo/{Package}/   （含 BuiltinCatalog.bytes）
 ///   IIS 热更：C:\IIS_ServerData\YooAsset\{ver}\AssetBundles\{Package}/
-///   请求：http://192.168.18.62:8866/YooAsset/{ver}/AssetBundles/...
+///   BundleServerUrl：http://192.168.18.62:8866/YooAsset/{ver}/AssetBundles
+///   实际请求：{BundleServerUrl}/{Package}/{fileName}
+///     例：.../AssetBundles/AllBundle/AllBundle.version
 /// </summary>
 public static class YooAssetSteps
 {
