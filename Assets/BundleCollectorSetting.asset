@@ -12,7 +12,67 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 185f6993d5150494d98da50e26cb1c25, type: 3}
   m_Name: BundleCollectorSetting
   m_EditorClassIdentifier: 
-  ShowPackageView: 0
+  ShowPackageView: 1
   ShowEditorAlias: 0
-  UniqueBundleName: 0
-  Packages: []
+  UniqueBundleName: 1
+  Packages:
+  - PackageName: AllBundle
+    PackageDesc: "\u573A\u666F/\u8D44\u6E90"
+    EnableAddressable: 0
+    SupportExtensionless: 1
+    LocationToLower: 0
+    IncludeAssetGUID: 0
+    AutoCollectShaders: 1
+    IgnoreRuleName: NormalIgnoreRule
+    Groups:
+    - GroupName: Default Group
+      GroupDesc: 
+      AssetTags: 
+      ActiveRuleName: EnableGroup
+      Collectors:
+      - CollectPath: Assets/HotRes
+        CollectorGUID: e740c3c1fe73b5149aca05b4aefd0dff
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
+      - CollectPath: Assets/Scenes_HotFix/ToolScene.unity
+        CollectorGUID: 9fc0d4010bbf28b4594072e72b8655ab
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackRawFile
+        FilterRuleName: CollectScene
+        AssetTags: 
+        UserData: 
+      - CollectPath: Assets/Samples/SetupRing/ORCASetupRing.unity
+        CollectorGUID: fde78d55c8de78c45a7d0930d2b0c7af
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectScene
+        AssetTags: 
+        UserData: 
+  - PackageName: DllBundle
+    PackageDesc: "\u4EE3\u7801\u5305"
+    EnableAddressable: 0
+    SupportExtensionless: 1
+    LocationToLower: 0
+    IncludeAssetGUID: 0
+    AutoCollectShaders: 1
+    IgnoreRuleName: NormalIgnoreRule
+    Groups:
+    - GroupName: Default Group
+      GroupDesc: 
+      AssetTags: 
+      ActiveRuleName: EnableGroup
+      Collectors:
+      - CollectPath: Assets/HotDll
+        CollectorGUID: 51bde58b44e7230458181008c28e9995
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
