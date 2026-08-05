@@ -41,7 +41,7 @@ public class launchGame : MonoBehaviour
         });
         Test5();
 
-        StartCoroutine(Custom1Enumerator());
+        // StartCoroutine(Custom1Enumerator());
 
         LoadResTest().Coroutine();
     }
