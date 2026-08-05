@@ -5,7 +5,8 @@ using UnityEngine;
 
 public partial class ProjectBuildWindow
 {
-    static readonly string[] BackendPresets = { "完整热更包", "仅 AB+分发", "自定义勾选" };
+    // 0 完整 HybridCLR+AB  1 日常：编译热更DLL+AB+分发  2 自定义勾选
+    static readonly string[] BackendPresets = { "完整热更包", "热更DLL+AB分发", "自定义勾选" };
 
     void DrawBackendTab(AssetBackendType backend, ref int preset)
     {

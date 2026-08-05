@@ -53,7 +53,7 @@ public static class BuildStepCatalog
     };
 
     /// <summary>
-    /// 仅 AB+分发：日常热更迭代（改代码后重编 DLL → 打 AB → 分发）。
+    /// 热更DLL+AB分发：日常热更迭代（改代码后重编 DLL → 拷贝 → 打 AB → 分发）。
     /// 不含 GenerateAll / AOT 裁剪（改桥接或 AOT 元数据时请用完整热更包）。
     /// </summary>
     public static List<BuildStepId> BundleMasterOnlyAbAndDistribute = new List<BuildStepId>

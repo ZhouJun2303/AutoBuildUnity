@@ -33,7 +33,7 @@ public partial class ProjectBuildWindow : EditorWindow
     readonly BuildStepRunner _runner = new BuildStepRunner();
     readonly HashSet<BuildStepId> _customSelected = new HashSet<BuildStepId>();
 
-    int _bmPreset;   // 0 完整热更 1 仅AB分发 2 自定义
+    int _bmPreset;   // 0 完整热更 1 热更DLL+AB分发 2 自定义
     int _yooPreset;
     int _aaPreset;
 
