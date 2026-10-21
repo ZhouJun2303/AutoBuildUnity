@@ -114,6 +114,10 @@ namespace Game.AssetAdapters
 
         public bool Exists(string assetPath, string packageName = null)
         {
+#if UNITY_EDITOR
+            if (TryNormalizeProjectPath(assetPath, out var projectPath))
+                return !string.IsNullOrEmpty(UnityEditor.AssetDatabase.AssetPathToGUID(projectPath));
+#endif
             if (!AssetPathUtility.TryToResourcesPath(assetPath, out var resPath))
                 return false;
             return Resources.Load(resPath) != null;
@@ -138,24 +142,23 @@ namespace Game.AssetAdapters
 
         private ResourceLease LoadLease<T>(string assetPath) where T : Object
         {
-            if (!AssetPathUtility.TryToResourcesPath(assetPath, out var resPath))
-            {
-                Debug.LogError($"[Resources] path not under Assets/Resources/: {assetPath}");
-                return null;
-            }
-
-            var asset = Resources.Load<T>(resPath);
-            if (asset == null)
-            {
-                Debug.LogError($"[Resources] Load failed: {assetPath}");
-                return null;
-            }
-
-            return Track(assetPath, asset);
+#if UNITY_EDITOR
+            if (TryNormalizeProjectPath(assetPath, out var projectPath))
+                return LoadEditorLease<T>(assetPath, projectPath);
+#endif
+            return LoadResourcesLease<T>(assetPath);
         }
 
         private async ETTask<ResourceLease> LoadLeaseAsync<T>(string assetPath) where T : Object
         {
+#if UNITY_EDITOR
+            // Editor Resources 模式直接读工程资源，HotRes 不必先放进 Assets/Resources。
+            if (TryNormalizeProjectPath(assetPath, out var projectPath))
+            {
+                await ETTask.CompletedTask;
+                return LoadEditorLease<T>(assetPath, projectPath);
+            }
+#endif
             if (!AssetPathUtility.TryToResourcesPath(assetPath, out var resPath))
             {
                 Debug.LogError($"[Resources] path not under Assets/Resources/: {assetPath}");
@@ -175,12 +178,66 @@ namespace Game.AssetAdapters
                     return;
                 }
 
-                tcs.SetResult(Track(assetPath, asset));
+                tcs.SetResult(Track(assetPath, asset, unloadWithResources: true));
             };
             return await tcs;
         }
 
-        private ResourceLease Track(string assetPath, Object asset)
+#if UNITY_EDITOR
+        private static bool TryNormalizeProjectPath(string assetPath, out string projectPath)
+        {
+            projectPath = assetPath?.Replace('\\', '/');
+            return !string.IsNullOrEmpty(projectPath) && projectPath.StartsWith("Assets/");
+        }
+
+        private ResourceLease LoadEditorLease<T>(string assetPath, string projectPath) where T : Object
+        {
+            var asset = LoadFromAssetDatabase<T>(projectPath);
+            if (asset == null)
+            {
+                Debug.LogError($"[Resources] Editor load failed: {assetPath}");
+                return null;
+            }
+
+            return Track(assetPath, asset, unloadWithResources: false);
+        }
+
+        private static T LoadFromAssetDatabase<T>(string projectPath) where T : Object
+        {
+            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(projectPath);
+            if (asset != null)
+                return asset;
+
+            var all = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(projectPath);
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (all[i] is T typed)
+                    return typed;
+            }
+
+            return null;
+        }
+#endif
+
+        private ResourceLease LoadResourcesLease<T>(string assetPath) where T : Object
+        {
+            if (!AssetPathUtility.TryToResourcesPath(assetPath, out var resPath))
+            {
+                Debug.LogError($"[Resources] path not under Assets/Resources/: {assetPath}");
+                return null;
+            }
+
+            var asset = Resources.Load<T>(resPath);
+            if (asset == null)
+            {
+                Debug.LogError($"[Resources] Load failed: {assetPath}");
+                return null;
+            }
+
+            return Track(assetPath, asset, unloadWithResources: true);
+        }
+
+        private ResourceLease Track(string assetPath, Object asset, bool unloadWithResources)
         {
             var key = MakeKey(assetPath);
             if (!_leases.TryGetValue(key, out var leases))
@@ -189,7 +246,7 @@ namespace Game.AssetAdapters
                 _leases.Add(key, leases);
             }
 
-            var lease = new ResourceLease(key, asset);
+            var lease = new ResourceLease(key, asset, unloadWithResources);
             leases.Add(lease);
             return lease;
         }
@@ -210,7 +267,8 @@ namespace Game.AssetAdapters
             bool stillReferenced = _leases.Values
                 .SelectMany(value => value)
                 .Any(other => ReferenceEquals(other.Asset, lease.Asset));
-            if (!stillReferenced && lease.Asset != null)
+            // AssetDatabase 取出的是工程源资源，UnloadAsset 会把源文件从编辑器里卸掉。
+            if (lease.UnloadWithResources && !stillReferenced && lease.Asset != null)
                 Resources.UnloadAsset(lease.Asset);
         }
 
@@ -233,14 +291,16 @@ namespace Game.AssetAdapters
 
         private sealed class ResourceLease
         {
-            public ResourceLease(string key, Object asset)
+            public ResourceLease(string key, Object asset, bool unloadWithResources)
             {
                 Key = key;
                 Asset = asset;
+                UnloadWithResources = unloadWithResources;
             }
 
             public string Key { get; }
             public Object Asset { get; }
+            public bool UnloadWithResources { get; }
             public bool Released { get; set; }
         }
     }
