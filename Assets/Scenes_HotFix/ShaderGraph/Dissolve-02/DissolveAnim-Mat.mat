@@ -58,7 +58,7 @@ Material:
     - _AlphaThreshold: 0.5
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _RimWidth: 1
+    - _RimWidth: 3.49
     m_Colors:
-    - _RimColor: {r: 0.2351278, g: 0.8584906, b: 0.2146226, a: 0}
+    - _RimColor: {r: 0.21568628, g: 0.48939112, b: 0.85882354, a: 0}
   m_BuildTextureStacks: []
